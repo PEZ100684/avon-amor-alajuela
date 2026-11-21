@@ -136,6 +136,12 @@
               </div>
             </div>
             <div id="voice-info" class="text-[var(--muted-foreground)]">Si no subes voz, el video durará 4 seg por foto.</div>
+            <div id="voice-preview-box" class="hidden pt-2 flex flex-col sm:flex-row sm:items-center gap-2 border-t border-[var(--border)]">
+              <audio id="voice-player" controls class="h-8 flex-1"></audio>
+              <a id="btn-download-voice" download="voz_avon_mariana.webm" class="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] font-semibold text-center hover:opacity-80 cursor-pointer">
+                ⬇ Guardar Audio
+              </a>
+            </div>
           </div>
         </div>
 
@@ -370,11 +376,19 @@
     });
 
     function loadVoiceBlob(blob, label) {
-      voiceEl.src = URL.createObjectURL(blob);
+      const objUrl = URL.createObjectURL(blob);
+      voiceEl.src = objUrl;
+      const player = document.getElementById("voice-player");
+      const dl = document.getElementById("btn-download-voice");
+      player.src = objUrl;
+      dl.href = objUrl;
+      dl.download = `voz_avon_mariana_${Date.now()}.webm`;
+      document.getElementById("voice-preview-box").classList.remove("hidden");
+
       voiceEl.onloadedmetadata = () => {
         voiceLoaded = true;
         voiceDuration = voiceEl.duration || 10;
-        document.getElementById("voice-info").textContent = `Voz lista: ${label} (${voiceDuration.toFixed(1)}s)`;
+        document.getElementById("voice-info").textContent = `Voz lista: ${label} (${voiceDuration.toFixed(1)}s) — Ya puedes escucharla o guardarla abajo.`;
       };
     }
 
