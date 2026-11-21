@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Reclutamiento Avon — Alajuela</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    .tab-active {
+      border-bottom: 2px solid var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .kanban-col {
+      min-width: 260px;
+      max-width: 280px;
+    }
+  </style>
+
+  <style>
+    :root {
+      --background: #f8fafc;
+      --content: #ffffff;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --card-border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #64748b;
+      --primary: #7c3aed;
+      --primary-foreground: #ffffff;
+      --secondary: #f1f5f9;
+      --secondary-foreground: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --chart-1: #6366f1;
+      --chart-2: #3b82f6;
+      --chart-3: #06b6d4;
+      --chart-4: #a855f7;
+    }
+  </style>
+
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-0">
+  <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs font-bold text-purple-700">AVON AMOR · Mariana Guzmán (7232-9408)</span>
+      <nav class="flex flex-wrap items-center gap-1.5">
+        <a href="index.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Inicio</a><a href="crm.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-purple-700 text-white">CRM Reclutamiento</a><a href="guiones.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Creador Guiones</a><a href="editor.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Editor Video 9:16</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 py-5 space-y-5">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-[var(--border)]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-bold text-sm">AV</span>
+          <h1 class="text-xl font-bold tracking-tight">CRM Reclutamiento Avon — Alajuela</h1>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Control de prospectos, llamadas, citas y activación de nuevas vendedoras en las 15 zonas de Alajuela.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-export-csv" class="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] hover:opacity-85 transition cursor-pointer">
+          Exportar Excel (CSV)
+        </button>
+        <button id="btn-backup" class="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] hover:opacity-85 transition cursor-pointer">
+          Respaldar JSON
+        </button>
+        <label class="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] hover:opacity-85 transition cursor-pointer">
+          Importar JSON
+          <input id="input-import-json" type="file" accept=".json" class="hidden" />
+        </label>
+        <button id="btn-new-prospect" class="px-4 py-2 text-xs font-semibold rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition cursor-pointer">
+          + Nuevo Prospecto
+        </button>
+      </div>
+    </header>
+
+    <!-- Demo Banner -->
+    <div id="demo-banner" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-xs">
+      <span class="text-[var(--muted-foreground)]">
+        Estás viendo <strong class="text-[var(--foreground)]">datos de ejemplo</strong> para probar el CRM. Tus cambios se guardan automáticamente en este navegador.
+      </span>
+      <button id="btn-clear-demo" class="px-3 py-1.5 rounded-md border border-[var(--border)] text-xs font-medium hover:opacity-80 cursor-pointer shrink-0">
+        Limpiar ejemplos y empezar en cero
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex items-center gap-6 border-b border-[var(--border)] text-sm">
+      <button data-tab="dashboard" class="tab-btn pb-2.5 cursor-pointer tab-active">Dashboard</button>
+      <button data-tab="prospects" class="tab-btn pb-2.5 cursor-pointer text-[var(--muted-foreground)]">Prospectos y Equipo (<span id="tab-count">0</span>)</button>
+      <button data-tab="kanban" class="tab-btn pb-2.5 cursor-pointer text-[var(--muted-foreground)]">Embudo Visual</button>
+    </nav>
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section id="view-dashboard" class="space-y-5">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div class="text-xs text-[var(--muted-foreground)]">Total Prospectos</div>
+          <div id="kpi-total" class="text-2xl font-bold mt-1 tabular-nums">0</div>
+          <div id="kpi-new-week" class="text-xs text-[var(--muted-foreground)] mt-1">0 sin contactar</div>
+        </div>
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div class="text-xs text-[var(--muted-foreground)]">Llamadas Hechas</div>
+          <div id="kpi-called" class="text-2xl font-bold mt-1 tabular-nums">0</div>
+          <div id="kpi-called-pct" class="text-xs text-[var(--muted-foreground)] mt-1">0% contactadas</div>
+        </div>
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div class="text-xs text-[var(--muted-foreground)]">Citas Aceptadas</div>
+          <div id="kpi-appointments" class="text-2xl font-bold mt-1 tabular-nums text-[var(--primary)]">0</div>
+          <div id="kpi-appointments-pct" class="text-xs text-[var(--muted-foreground)] mt-1">0% conversión</div>
+        </div>
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div class="text-xs text-[var(--muted-foreground)]">Inscritas / Activas</div>
+          <div id="kpi-active" class="text-2xl font-bold mt-1 tabular-nums text-[var(--success)]">0</div>
+          <div id="kpi-pending-order" class="text-xs text-[var(--warning)] mt-1">0 sin 1er pedido</div>
+        </div>
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] col-span-2 lg:col-span-1">
+          <div class="text-xs text-[var(--muted-foreground)]">Seguimiento Hoy</div>
+          <div id="kpi-today" class="text-2xl font-bold mt-1 tabular-nums text-[var(--warning)]">0</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">Llamadas o citas</div>
+        </div>
+      </div>
+
+      <!-- Agenda + Funnel -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Urgent Follow-ups -->
+        <div class="lg:col-span-2 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold">Agenda de Hoy y Seguimientos Pendientes</h2>
+            <span class="text-xs text-[var(--muted-foreground)]">Prioridad alta</span>
+          </div>
+          <div id="today-list" class="divide-y divide-[var(--border)]"></div>
+        </div>
+
+        <!-- Funnel Breakdown -->
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h2 class="text-sm font-semibold">Embudo de Reclutamiento</h2>
+          <div id="funnel-bars" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+      <!-- Coverage by 15 Zones -->
+      <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm font-semibold">Cobertura en las 15 Zonas de Alajuela</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Haz clic en cualquier zona para filtrar sus prospectos. Las zonas resaltadas en alerta no tienen vendedoras activas aún.</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[var(--success)] inline-block"></span> Con activas</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[var(--warning)] inline-block"></span> Solo prospectos</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[var(--error)] inline-block"></span> Sin cobertura</span>
+          </div>
+        </div>
+        <div id="zones-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: PROSPECTS TABLE -->
+    <section id="view-prospects" class="hidden space-y-4">
+      <!-- Filters -->
+      <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+        <input id="filter-search" type="text" placeholder="Buscar nombre, teléfono, notas..." class="lg:col-span-2 px-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]" />
+        <select id="filter-zone" class="px-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"></select>
+        <select id="filter-stage" class="px-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"></select>
+        <select id="filter-cita" class="px-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+          <option value="">Cita: Todas</option>
+          <option value="Si">Aceptó cita</option>
+          <option value="Pendiente">Cita pendiente</option>
+          <option value="No">No aceptó cita</option>
+        </select>
+        <button id="btn-reset-filters" class="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="rounded-xl bg-[var(--card)] border border-[var(--border)] overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-[var(--border)] text-[var(--muted-foreground)]">
+              <th class="py-3 px-3 font-semibold">Prospecto</th>
+              <th class="py-3 px-3 font-semibold">Zona</th>
+              <th class="py-3 px-3 font-semibold">Perfil / Origen</th>
+              <th class="py-3 px-3 font-semibold">Estado</th>
+              <th class="py-3 px-3 font-semibold">Llamadas</th>
+              <th class="py-3 px-3 font-semibold">Cita</th>
+              <th class="py-3 px-3 font-semibold">Seguimiento</th>
+              <th class="py-3 px-3 font-semibold text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="prospects-tbody" class="divide-y divide-[var(--border)]"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 3: KANBAN -->
+    <section id="view-kanban" class="hidden space-y-3">
+      <p class="text-xs text-[var(--muted-foreground)]">Vista por etapas del embudo de reclutamiento. Haz clic en cualquier tarjeta para editar o avanzar a la siguiente etapa.</p>
+      <div id="kanban-board" class="flex gap-3 overflow-x-auto pb-4"></div>
+    </section>
+  </div>
+
+  <!-- MODAL: ADD / EDIT PROSPECT -->
+  <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-2xl rounded-xl bg-[var(--card)] border border-[var(--border)] p-5 space-y-4 my-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+        <h3 id="modal-title" class="text-base font-bold">Nuevo Prospecto</h3>
+        <button id="btn-close-modal" class="text-xs px-2.5 py-1 rounded border border-[var(--border)] cursor-pointer hover:opacity-80">Cerrar</button>
+      </div>
+
+      <form id="prospect-form" class="space-y-4 text-xs">
+        <input type="hidden" id="field-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Nombre completo *</label>
+            <input id="field-name" type="text" required placeholder="Ej. María Fernanda Rojas" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]" />
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">WhatsApp / Teléfono (CR) *</label>
+            <input id="field-phone" type="text" required placeholder="Ej. 8845-1234" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]" />
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Correo electrónico</label>
+            <input id="field-email" type="email" placeholder="opcional@correo.com" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]" />
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Zona de Alajuela *</label>
+            <select id="field-zone" required class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"></select>
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Perfil de prospecto</label>
+            <select id="field-profile" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+              <option value="Ama de casa / Mamá">Ama de casa / Mamá</option>
+              <option value="Trabaja en Zona Franca">Trabaja en Zona Franca</option>
+              <option value="Empleada / Oficina">Empleada / Oficina</option>
+              <option value="Ya vende otro catálogo">Ya vende otro catálogo</option>
+              <option value="Estudiante">Estudiante</option>
+              <option value="Dueña de salón / comercio">Dueña de salón / comercio</option>
+              <option value="Ex-vendedora Avon">Ex-vendedora Avon</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Origen del contacto</label>
+            <select id="field-source" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+              <option value="Facebook Ads">Facebook Ads</option>
+              <option value="TikTok">TikTok</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Grupo Empleo Alajuela">Grupo Empleo Alajuela</option>
+              <option value="Referida por vendedora">Referida por vendedora</option>
+              <option value="Zona Franca Coyol">Zona Franca Coyol</option>
+              <option value="Negocio local / Visita">Negocio local / Visita</option>
+              <option value="WhatsApp directo">WhatsApp directo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Estado del embudo</label>
+            <select id="field-stage" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"></select>
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">¿Llamada realizada?</label>
+            <select id="field-called" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">
+              <option value="No">No</option>
+              <option value="Si">Sí</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Fecha última llamada</label>
+            <input id="field-last-call" type="date" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]" />
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">¿Aceptó cita?</label>
+            <select id="field-cita" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">
+              <option value="Pendiente">Pendiente</option>
+              <option value="Si">Sí aceptó</option>
+              <option value="No">No aceptó</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Fecha y hora de cita</label>
+            <input id="field-cita-date" type="datetime-local" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]" />
+          </div>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Próximo seguimiento</label>
+            <input id="field-next-followup" type="date" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[var(--muted-foreground)] mb-1">Notas y observaciones</label>
+          <textarea id="field-notes" rows="2" placeholder="Ej. Trabaja en parque industrial Coyol, quiere vender a compañeras en quincena..." class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+          <button type="button" id="btn-delete-prospect" class="hidden px-3 py-2 rounded-lg border border-[var(--error)] text-[var(--error)] font-medium cursor-pointer hover:opacity-80">
+            Eliminar
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" id="btn-cancel-modal" class="px-4 py-2 rounded-lg border border-[var(--border)] cursor-pointer hover:opacity-80">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold cursor-pointer hover:opacity-90">Guardar Prospecto</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: WHATSAPP QUICK TEMPLATES -->
+  <div id="wa-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-xl bg-[var(--card)] border border-[var(--border)] p-5 space-y-3 text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+        <h3 class="text-sm font-bold">Enviar WhatsApp a <span id="wa-name"></span></h3>
+        <button id="btn-close-wa" class="px-2 py-1 rounded border border-[var(--border)] cursor-pointer">Cerrar</button>
+      </div>
+      <p class="text-[var(--muted-foreground)]">Elige una plantilla lista para abrir directamente en WhatsApp:</p>
+      <div id="wa-templates" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <script>
+    const ZONES = [
+      "Coyol",
+      "Cacao",
+      "La Garita",
+      "Poás y alrededores",
+      "Carrillos",
+      "Carrizal",
+      "Barrio San José",
+      "Pueblo Nuevo",
+      "San Isidro",
+      "Tuetal Norte",
+      "Tuetal Sur",
+      "Los Jardines",
+      "La Trinidad",
+      "Sabanilla",
+      "IMAS"
+    ];
+
+    const STAGES = [
+      { id: "nuevo", label: "Prospecto nuevo", color: "var(--chart-1)" },
+      { id: "contactada", label: "Contactada WhatsApp", color: "var(--chart-2)" },
+      { id: "llamada", label: "Llamada realizada", color: "var(--chart-3)" },
+      { id: "cita", label: "Cita agendada", color: "var(--primary)" },
+      { id: "registro", label: "En registro", color: "var(--chart-4)" },
+      { id: "inscrita", label: "Inscrita (Sin 1er pedido)", color: "var(--warning)" },
+      { id: "activa", label: "Activa (1er pedido)", color: "var(--success)" },
+      { id: "consolidada", label: "Consolidada (2do+ pedido)", color: "var(--success)" },
+      { id: "inactiva", label: "Inactiva / Recuperar", color: "var(--error)" }
+    ];
+
+    const STORAGE_KEY = "avon_crm_alajuela_reclutamiento_v1";
+    const DEMO_FLAG_KEY = "avon_crm_alajuela_is_demo_v1";
+
+    function todayISO() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    }
+
+    function addDaysISO(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    const DEMO_DATA = [
+      {
+        id: "p1",
+        name: "Karla Vanessa Mora",
+        phone: "8841-2209",
+        email: "karla.mora@gmail.com",
+        zone: "Coyol",
+        profile: "Trabaja en Zona Franca",
+        source: "Zona Franca Coyol",
+        stage: "cita",
+        called: "Si",
+        callCount: 2,
+        lastCall: todayISO(),
+        cita: "Si",
+        citaDate: todayISO() + "T16:30",
+        nextFollowup: todayISO(),
+        notes: "Trabaja en planta médica en Coyol. Tiene 30 compañeras en su turno interesadas en catálogo."
+      },
+      {
+        id: "p2",
+        name: "Stephanie Rojas Jiménez",
+        phone: "7120-5541",
+        email: "",
+        zone: "Barrio San José",
+        profile: "Ama de casa / Mamá",
+        source: "Facebook Ads",
+        stage: "nuevo",
+        called: "No",
+        callCount: 0,
+        lastCall: "",
+        cita: "Pendiente",
+        citaDate: "",
+        nextFollowup: todayISO(),
+        notes: "Llenó formulario hoy buscando ingreso extra desde casa."
+      },
+      {
+        id: "p3",
+        name: "Mariela Campos Ulate",
+        phone: "8912-3304",
+        email: "mariela.c@hotmail.com",
+        zone: "La Garita",
+        profile: "Dueña de salón / comercio",
+        source: "Negocio local / Visita",
+        stage: "activa",
+        called: "Si",
+        callCount: 3,
+        lastCall: addDaysISO(-4),
+        cita: "Si",
+        citaDate: addDaysISO(-6) + "T10:00",
+        nextFollowup: addDaysISO(5),
+        notes: "Tiene salón de uñas en La Garita. Ya pasó su primer pedido exitosamente."
+      },
+      {
+        id: "p4",
+        name: "Yendry Solís Vargas",
+        phone: "6045-8812",
+        email: "",
+        zone: "Poás y alrededores",
+        profile: "Ya vende otro catálogo",
+        source: "TikTok",
+        stage: "inscrita",
+        called: "Si",
+        callCount: 2,
+        lastCall: addDaysISO(-2),
+        cita: "Si",
+        citaDate: addDaysISO(-5) + "T14:00",
+        nextFollowup: todayISO(),
+        notes: "Inscrita esta semana, ayudarle a armar su 1er pedido antes del cierre de campaña."
+      },
+      {
+        id: "p5",
+        name: "Priscila Araya Quesada",
+        phone: "8377-1920",
+        email: "pris.araya@gmail.com",
+        zone: "Sabanilla",
+        profile: "Ama de casa / Mamá",
+        source: "Referida por vendedora",
+        stage: "llamada",
+        called: "Si",
+        callCount: 1,
+        lastCall: addDaysISO(-1),
+        cita: "Pendiente",
+        citaDate: "",
+        nextFollowup: addDaysISO(1),
+        notes: "Pidió que la llamen mañana después de las 2pm para confirmar cita."
+      },
+      {
+        id: "p6",
+        name: "Daniela Chaves Soto",
+        phone: "8701-6643",
+        email: "",
+        zone: "Pueblo Nuevo",
+        profile: "Estudiante",
+        source: "Instagram",
+        stage: "consolidada",
+        called: "Si",
+        callCount: 4,
+        lastCall: addDaysISO(-7),
+        cita: "Si",
+        citaDate: addDaysISO(-25) + "T11:00",
+        nextFollowup: addDaysISO(7),
+        notes: "Excelente vendedora por Estados de WhatsApp. Ya lleva 3 campañas seguidas."
+      },
+      {
+        id: "p7",
+        name: "Grettel Benavides",
+        phone: "8490-1122",
+        email: "",
+        zone: "Carrizal",
+        profile: "Ex-vendedora Avon",
+        source: "Grupo Empleo Alajuela",
+        stage: "contactada",
+        called: "No",
+        callCount: 0,
+        lastCall: "",
+        cita: "Pendiente",
+        citaDate: "",
+        nextFollowup: todayISO(),
+        notes: "Vendió Avon hace 2 años y quiere retomar. Llamar hoy para agendar."
+      }
+    ];
+
+    let prospects = [];
+    let currentTab = "dashboard";
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          prospects = JSON.parse(saved);
+        } catch {
+          prospects = [...DEMO_DATA];
+        }
+      } else {
+        prospects = [...DEMO_DATA];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(prospects));
+        localStorage.setItem(DEMO_FLAG_KEY, "true");
+      }
+      updateDemoBanner();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(prospects));
+      updateDemoBanner();
+      renderAll();
+    }
+
+    function updateDemoBanner() {
+      const isDemo = localStorage.getItem(DEMO_FLAG_KEY) === "true";
+      document.getElementById("demo-banner").classList.toggle("hidden", !isDemo);
+    }
+
+    function getStageInfo(stageId) {
+      return STAGES.find(s => s.id === stageId) || STAGES[0];
+    }
+
+    function cleanPhoneCR(phone) {
+      const digits = (phone || "").replace(/\D/g, "");
+      if (digits.length === 8) return "506" + digits;
+      return digits;
+    }
+
+    function formatDateTime(dt) {
+      if (!dt) return "—";
+      const [datePart, timePart] = dt.split("T");
+      if (!datePart) return dt;
+      const [y, m, d] = datePart.split("-");
+      return `${d}/${m}/${y}` + (timePart ? ` ${timePart}` : "");
+    }
+
+    function formatDate(dStr) {
+      if (!dStr) return "—";
+      const [y, m, d] = dStr.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function populateSelects() {
+      const zoneFilter = document.getElementById("filter-zone");
+      zoneFilter.innerHTML = `<option value="">Zona: Todas (15)</option>` +
+        ZONES.map(z => `<option value="${z}">${z}</option>`).join("");
+
+      const zoneField = document.getElementById("field-zone");
+      zoneField.innerHTML = ZONES.map(z => `<option value="${z}">${z}</option>`).join("");
+
+      const stageFilter = document.getElementById("filter-stage");
+      stageFilter.innerHTML = `<option value="">Estado: Todos</option>` +
+        STAGES.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
+
+      const stageField = document.getElementById("field-stage");
+      stageField.innerHTML = STAGES.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
+    }
+
+    function renderKPIs() {
+      const total = prospects.length;
+      const uncontacted = prospects.filter(p => p.stage === "nuevo").length;
+      const called = prospects.filter(p => p.called === "Si").length;
+      const citas = prospects.filter(p => p.cita === "Si").length;
+      const active = prospects.filter(p => p.stage === "activa" || p.stage === "consolidada").length;
+      const pendingOrder = prospects.filter(p => p.stage === "inscrita").length;
+      const today = todayISO();
+      const dueToday = prospects.filter(p =>
+        (p.nextFollowup && p.nextFollowup <= today) ||
+        (p.citaDate && p.citaDate.slice(0, 10) === today)
+      ).length;
+
+      document.getElementById("tab-count").textContent = total;
+      document.getElementById("kpi-total").textContent = total;
+      document.getElementById("kpi-new-week").textContent = `${uncontacted} sin contactar`;
+      document.getElementById("kpi-called").textContent = called;
+      document.getElementById("kpi-called-pct").textContent = total ? `${Math.round((called / total) * 100)}% llamadas` : "0%";
+      document.getElementById("kpi-appointments").textContent = citas;
+      document.getElementById("kpi-appointments-pct").textContent = total ? `${Math.round((citas / total) * 100)}% conversión` : "0%";
+      document.getElementById("kpi-active").textContent = active;
+      document.getElementById("kpi-pending-order").textContent = `${pendingOrder} inscritas sin 1er pedido`;
+      document.getElementById("kpi-today").textContent = dueToday;
+    }
+
+    function renderTodayAgenda() {
+      const container = document.getElementById("today-list");
+      const today = todayISO();
+      const items = prospects.filter(p =>
+        (p.nextFollowup && p.nextFollowup <= today) ||
+        (p.citaDate && p.citaDate.slice(0, 10) === today)
+      ).sort((a, b) => (a.nextFollowup || "9999").localeCompare(b.nextFollowup || "9999"));
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="py-6 text-center text-xs text-[var(--muted-foreground)]">No hay seguimientos vencidos ni pendientes para hoy. ¡Excelente trabajo!</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map(p => {
+        const st = getStageInfo(p.stage);
+        const isCitaToday = p.citaDate && p.citaDate.slice(0, 10) === today;
+        return `
+          <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-semibold text-xs">${p.name}</span>
+                <span class="px-2 py-0.5 rounded-full text-xs border border-[var(--border)] bg-[var(--background)]">${p.zone}</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium" style="color:${st.color}; border:1px solid ${st.color};">${st.label}</span>
+                ${isCitaToday ? `<span class="px-2 py-0.5 rounded-full text-xs bg-[var(--primary)] text-[var(--primary-foreground)] font-medium">Cita hoy ${p.citaDate.slice(11,16)}</span>` : ""}
+              </div>
+              <div class="text-xs text-[var(--muted-foreground)]">${p.phone} · ${p.notes || "Sin notas"}</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="openWhatsAppModal('${p.id}')" class="px-2.5 py-1.5 rounded-md text-xs font-medium border border-[var(--success)] text-[var(--success)] hover:opacity-80 cursor-pointer">WhatsApp</button>
+              <button onclick="quickLogCall('${p.id}')" class="px-2.5 py-1.5 rounded-md text-xs font-medium border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">+ Llamada</button>
+              <button onclick="openEditModal('${p.id}')" class="px-2.5 py-1.5 rounded-md text-xs font-medium border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">Editar</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderFunnel() {
+      const container = document.getElementById("funnel-bars");
+      const maxCount = Math.max(1, ...STAGES.map(s => prospects.filter(p => p.stage === s.id).length));
+      container.innerHTML = STAGES.map(s => {
+        const count = prospects.filter(p => p.stage === s.id).length;
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[var(--muted-foreground)]">${s.label}</span>
+              <span class="font-semibold tabular-nums">${count}</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-[var(--background)] overflow-hidden">
+              <div class="h-full rounded-full transition-all" style="width:${pct}%; background:${s.color};"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderZones() {
+      const container = document.getElementById("zones-grid");
+      container.innerHTML = ZONES.map(z => {
+        const inZone = prospects.filter(p => p.zone === z);
+        const activeCount = inZone.filter(p => p.stage === "activa" || p.stage === "consolidada").length;
+        let dotColor = "var(--error)";
+        if (activeCount > 0) dotColor = "var(--success)";
+        else if (inZone.length > 0) dotColor = "var(--warning)";
+
+        return `
+          <button onclick="filterByZoneFromDashboard('${z}')" class="text-left p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)] transition cursor-pointer">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-xs font-semibold truncate">${z}</span>
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${dotColor};"></span>
+            </div>
+            <div class="mt-1.5 flex items-center justify-between text-xs text-[var(--muted-foreground)] tabular-nums">
+              <span>${inZone.length} prosp.</span>
+              <span class="font-medium text-[var(--foreground)]">${activeCount} activas</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function getFilteredProspects() {
+      const q = document.getElementById("filter-search").value.trim().toLowerCase();
+      const zone = document.getElementById("filter-zone").value;
+      const stage = document.getElementById("filter-stage").value;
+      const cita = document.getElementById("filter-cita").value;
+
+      return prospects.filter(p => {
+        if (zone && p.zone !== zone) return false;
+        if (stage && p.stage !== stage) return false;
+        if (cita && p.cita !== cita) return false;
+        if (q) {
+          const hay = `${p.name} ${p.phone} ${p.email} ${p.zone} ${p.notes} ${p.profile} ${p.source}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("prospects-tbody");
+      const list = getFilteredProspects();
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-[var(--muted-foreground)]">No hay prospectos que coincidan con los filtros actuales.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(p => {
+        const citaBadge = p.cita === "Si"
+          ? `<span class="text-[var(--success)] font-semibold">Sí</span><div class="text-[var(--muted-foreground)]">${formatDateTime(p.citaDate)}</div>`
+          : p.cita === "No"
+          ? `<span class="text-[var(--error)]">No aceptó</span>`
+          : `<span class="text-[var(--muted-foreground)]">Pendiente</span>`;
+
+        const stageOptions = STAGES.map(s =>
+          `<option value="${s.id}" ${p.stage === s.id ? "selected" : ""}>${s.label}</option>`
+        ).join("");
+
+        return `
+          <tr class="hover:bg-[var(--background)]/60">
+            <td class="py-3 px-3">
+              <div class="font-semibold">${p.name}</div>
+              <div class="text-[var(--muted-foreground)]">${p.phone}${p.email ? " · " + p.email : ""}</div>
+            </td>
+            <td class="py-3 px-3 font-medium">${p.zone}</td>
+            <td class="py-3 px-3">
+              <div>${p.profile}</div>
+              <div class="text-[var(--muted-foreground)]">${p.source}</div>
+            </td>
+            <td class="py-3 px-3">
+              <select onchange="quickChangeStage('${p.id}', this.value)" class="px-2 py-1 rounded border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-xs">
+                ${stageOptions}
+              </select>
+            </td>
+            <td class="py-3 px-3">
+              <div>${p.called === "Si" ? `Sí (${p.callCount || 1})` : "No"}</div>
+              <div class="text-[var(--muted-foreground)]">${p.lastCall ? formatDate(p.lastCall) : "—"}</div>
+            </td>
+            <td class="py-3 px-3">${citaBadge}</td>
+            <td class="py-3 px-3">${formatDate(p.nextFollowup)}</td>
+            <td class="py-3 px-3 text-right whitespace-nowrap space-x-1">
+              <button onclick="openWhatsAppModal('${p.id}')" class="px-2 py-1 rounded border border-[var(--success)] text-[var(--success)] hover:opacity-80 cursor-pointer">WA</button>
+              <button onclick="quickLogCall('${p.id}')" class="px-2 py-1 rounded border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">+Llamada</button>
+              <button onclick="openEditModal('${p.id}')" class="px-2 py-1 rounded border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">Editar</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderKanban() {
+      const board = document.getElementById("kanban-board");
+      board.innerHTML = STAGES.map(s => {
+        const cards = prospects.filter(p => p.stage === s.id);
+        return `
+          <div class="kanban-col shrink-0 rounded-xl bg-[var(--card)] border border-[var(--border)] p-3 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full" style="background:${s.color};"></span>
+                <span class="text-xs font-semibold">${s.label}</span>
+              </div>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--background)] tabular-nums">${cards.length}</span>
+            </div>
+            <div class="space-y-2">
+              ${cards.length === 0 ? `<div class="text-xs text-[var(--muted-foreground)] py-4 text-center">Vacío</div>` : cards.map(p => `
+                <div onclick="openEditModal('${p.id}')" class="p-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)] transition cursor-pointer space-y-1">
+                  <div class="font-semibold text-xs">${p.name}</div>
+                  <div class="text-xs text-[var(--muted-foreground)]">${p.zone} · ${p.phone}</div>
+                  <div class="flex items-center justify-between text-xs pt-1">
+                    <span class="text-[var(--muted-foreground)]">${p.profile}</span>
+                    ${p.cita === "Si" ? `<span class="text-[var(--success)] font-medium">Cita ✓</span>` : ""}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAll() {
+      renderKPIs();
+      renderTodayAgenda();
+      renderFunnel();
+      renderZones();
+      renderTable();
+      renderKanban();
+    }
+
+    // Actions
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        const active = btn.dataset.tab === tab;
+        btn.classList.toggle("tab-active", active);
+        btn.classList.toggle("text-[var(--muted-foreground)]", !active);
+      });
+      document.getElementById("view-dashboard").classList.toggle("hidden", tab !== "dashboard");
+      document.getElementById("view-prospects").classList.toggle("hidden", tab !== "prospects");
+      document.getElementById("view-kanban").classList.toggle("hidden", tab !== "kanban");
+    }
+
+    window.filterByZoneFromDashboard = function(zone) {
+      document.getElementById("filter-zone").value = zone;
+      document.getElementById("filter-stage").value = "";
+      document.getElementById("filter-cita").value = "";
+      document.getElementById("filter-search").value = "";
+      switchTab("prospects");
+      renderTable();
+    };
+
+    window.quickChangeStage = function(id, newStage) {
+      const p = prospects.find(x => x.id === id);
+      if (!p) return;
+      p.stage = newStage;
+      if (newStage === "llamada" && p.called !== "Si") {
+        p.called = "Si";
+        p.callCount = (p.callCount || 0) + 1;
+        p.lastCall = todayISO();
+      }
+      if (newStage === "cita" && p.cita === "Pendiente") {
+        p.cita = "Si";
+      }
+      saveData();
+    };
+
+    window.quickLogCall = function(id) {
+      const p = prospects.find(x => x.id === id);
+      if (!p) return;
+      p.called = "Si";
+      p.callCount = (p.callCount || 0) + 1;
+      p.lastCall = todayISO();
+      if (p.stage === "nuevo" || p.stage === "contactada") {
+        p.stage = "llamada";
+      }
+      saveData();
+    };
+
+    window.openWhatsAppModal = function(id) {
+      const p = prospects.find(x => x.id === id);
+      if (!p) return;
+      const num = cleanPhoneCR(p.phone);
+      const firstName = p.name.split(" ")[0];
+      document.getElementById("wa-name").textContent = p.name;
+
+      const templates = [
+        {
+          title: "1. Primer contacto (Reclutamiento)",
+          text: `¡Hola ${firstName}! Te saluda Mariana Guzmán, Líder de Avon aquí en Alajuela. Vi tu interés en generar ingresos extra desde ${p.zone}. ¿Tienes 5 minutitos hoy para contarte cómo puedes empezar sin complicarte y cuánto puedes ganar desde tu primera campaña?`
+        },
+        {
+          title: "2. Confirmar cita de inscripción",
+          text: `¡Hola ${firstName}! Te confirmo nuestra reunión para explicarte todo sobre cómo iniciar tu negocio Avon en ${p.zone} y ver los premios de bienvenida. ¿Te queda bien a la hora acordada?`
+        },
+        {
+          title: "3. Apoyo para el 1er pedido (Activación)",
+          text: `¡Hola ${firstName}! ¡Bienvenida al equipo! Ya casi cierra la campaña y quiero ayudarte a que logres tu primer pedido para que ganes tus premios de inicio. ¿Te paso 3 imágenes listas para que subas hoy a tus Estados de WhatsApp?`
+        },
+        {
+          title: "4. Reactivación de ex-vendedora",
+          text: `¡Hola ${firstName}! ¿Cómo has estado? Te escribo porque en esta campaña Avon tiene incentivos buenísimos para volver a activar código aquí en ${p.zone}, y me encantaría acompañarte personalmente. ¿Te cuento los detalles?`
+        }
+      ];
+
+      document.getElementById("wa-templates").innerHTML = templates.map(t => {
+        const url = `https://wa.me/${num}?text=${encodeURIComponent(t.text)}`;
+        return `
+          <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] space-y-2">
+            <div class="font-semibold">${t.title}</div>
+            <p class="text-[var(--muted-foreground)]">${t.text}</p>
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1.5 rounded-md bg-[var(--success)] text-white font-medium hover:opacity-90">
+              Abrir en WhatsApp
+            </a>
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("wa-modal").classList.remove("hidden");
+    };
+
+    window.openEditModal = function(id) {
+      const p = prospects.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById("modal-title").textContent = "Editar Prospecto";
+      document.getElementById("field-id").value = p.id;
+      document.getElementById("field-name").value = p.name;
+      document.getElementById("field-phone").value = p.phone;
+      document.getElementById("field-email").value = p.email || "";
+      document.getElementById("field-zone").value = p.zone;
+      document.getElementById("field-profile").value = p.profile;
+      document.getElementById("field-source").value = p.source;
+      document.getElementById("field-stage").value = p.stage;
+      document.getElementById("field-called").value = p.called || "No";
+      document.getElementById("field-last-call").value = p.lastCall || "";
+      document.getElementById("field-cita").value = p.cita || "Pendiente";
+      document.getElementById("field-cita-date").value = p.citaDate || "";
+      document.getElementById("field-next-followup").value = p.nextFollowup || "";
+      document.getElementById("field-notes").value = p.notes || "";
+      document.getElementById("btn-delete-prospect").classList.remove("hidden");
+      document.getElementById("modal-overlay").classList.remove("hidden");
+    };
+
+    function openNewModal() {
+      document.getElementById("modal-title").textContent = "Nuevo Prospecto de Reclutamiento";
+      document.getElementById("prospect-form").reset();
+      document.getElementById("field-id").value = "";
+      document.getElementById("field-next-followup").value = todayISO();
+      document.getElementById("btn-delete-prospect").classList.add("hidden");
+      document.getElementById("modal-overlay").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    }
+
+    // Event Listeners
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById("btn-new-prospect").addEventListener("click", openNewModal);
+    document.getElementById("btn-close-modal").addEventListener("click", closeModal);
+    document.getElementById("btn-cancel-modal").addEventListener("click", closeModal);
+    document.getElementById("btn-close-wa").addEventListener("click", () => {
+      document.getElementById("wa-modal").classList.add("hidden");
+    });
+
+    document.getElementById("prospect-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("field-id").value;
+      const existing = id ? prospects.find(x => x.id === id) : null;
+      const data = {
+        id: id || ("p_" + Date.now()),
+        name: document.getElementById("field-name").value.trim(),
+        phone: document.getElementById("field-phone").value.trim(),
+        email: document.getElementById("field-email").value.trim(),
+        zone: document.getElementById("field-zone").value,
+        profile: document.getElementById("field-profile").value,
+        source: document.getElementById("field-source").value,
+        stage: document.getElementById("field-stage").value,
+        called: document.getElementById("field-called").value,
+        callCount: existing ? (existing.callCount || 0) : (document.getElementById("field-called").value === "Si" ? 1 : 0),
+        lastCall: document.getElementById("field-last-call").value,
+        cita: document.getElementById("field-cita").value,
+        citaDate: document.getElementById("field-cita-date").value,
+        nextFollowup: document.getElementById("field-next-followup").value,
+        notes: document.getElementById("field-notes").value.trim()
+      };
+
+      if (existing) {
+        Object.assign(existing, data);
+      } else {
+        prospects.unshift(data);
+        localStorage.setItem(DEMO_FLAG_KEY, "false");
+      }
+      closeModal();
+      saveData();
+    });
+
+    document.getElementById("btn-delete-prospect").addEventListener("click", () => {
+      const id = document.getElementById("field-id").value;
+      if (!id) return;
+      prospects = prospects.filter(x => x.id !== id);
+      closeModal();
+      saveData();
+    });
+
+    document.getElementById("btn-clear-demo").addEventListener("click", () => {
+      prospects = [];
+      localStorage.setItem(DEMO_FLAG_KEY, "false");
+      saveData();
+    });
+
+    ["filter-search", "filter-zone", "filter-stage", "filter-cita"].forEach(id => {
+      document.getElementById(id).addEventListener("input", renderTable);
+      document.getElementById(id).addEventListener("change", renderTable);
+    });
+
+    document.getElementById("btn-reset-filters").addEventListener("click", () => {
+      document.getElementById("filter-search").value = "";
+      document.getElementById("filter-zone").value = "";
+      document.getElementById("filter-stage").value = "";
+      document.getElementById("filter-cita").value = "";
+      renderTable();
+    });
+
+    // Export CSV (Excel friendly with UTF-8 BOM)
+    document.getElementById("btn-export-csv").addEventListener("click", () => {
+      const headers = ["Nombre", "WhatsApp", "Correo", "Zona", "Perfil", "Origen", "Estado", "Llamada Hecha", "Num Llamadas", "Ultima Llamada", "Acepto Cita", "Fecha Cita", "Proximo Seguimiento", "Notas"];
+      const rows = prospects.map(p => [
+        p.name, p.phone, p.email || "", p.zone, p.profile, p.source,
+        getStageInfo(p.stage).label, p.called, p.callCount || 0, p.lastCall || "",
+        p.cita, p.citaDate || "", p.nextFollowup || "", (p.notes || "").replace(/\n/g, " ")
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(","));
+
+      const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `crm_reclutamiento_avon_alajuela_${todayISO()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Backup & Restore JSON
+    document.getElementById("btn-backup").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(prospects, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `respaldo_crm_avon_${todayISO()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("input-import-json").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (Array.isArray(parsed)) {
+            prospects = parsed;
+            localStorage.setItem(DEMO_FLAG_KEY, "false");
+            saveData();
+          }
+        } catch {
+          alert("El archivo JSON no tiene un formato válido.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    // Init
+    populateSelects();
+    loadData();
+    renderAll();
+  </script>
+</body>
+</html>

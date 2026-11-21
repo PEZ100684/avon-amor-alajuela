@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Video 9:16 Avon — Mariana Guzmán</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    .mode-active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+  </style>
+
+  <style>
+    :root {
+      --background: #f8fafc;
+      --content: #ffffff;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --card-border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #64748b;
+      --primary: #7c3aed;
+      --primary-foreground: #ffffff;
+      --secondary: #f1f5f9;
+      --secondary-foreground: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --chart-1: #6366f1;
+      --chart-2: #3b82f6;
+      --chart-3: #06b6d4;
+      --chart-4: #a855f7;
+    }
+  </style>
+
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-0">
+  <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs font-bold text-purple-700">AVON AMOR · Mariana Guzmán (7232-9408)</span>
+      <nav class="flex flex-wrap items-center gap-1.5">
+        <a href="index.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Inicio</a><a href="crm.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">CRM Reclutamiento</a><a href="guiones.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Creador Guiones</a><a href="editor.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-purple-700 text-white">Editor Video 9:16</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 py-5 space-y-5">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-4 border-b border-[var(--border)]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-bold text-sm">🎥</span>
+          <h1 class="text-xl font-bold tracking-tight">Estudio Editor de Video 9:16 — AVON AMOR</h1>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Crea videos verticales sin marcas de agua para TikTok, Reels, Shorts y WhatsApp · <strong>Mariana Guzmán (7232-9408)</strong>
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-mode-a" class="mode-btn mode-active px-3.5 py-2 text-xs font-semibold rounded-lg border border-[var(--border)] cursor-pointer transition">
+          Modo A: Editar Video Grabado
+        </button>
+        <button id="btn-mode-b" class="mode-btn px-3.5 py-2 text-xs font-semibold rounded-lg border border-[var(--border)] bg-[var(--card)] cursor-pointer transition">
+          Modo B: Fotos + Voz (Sin cámara)
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+      <!-- Left Controls (7 cols) -->
+      <div class="lg:col-span-7 space-y-4 text-xs">
+
+        <!-- MODO A PANEL -->
+        <div id="panel-mode-a" class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h2 class="text-sm font-semibold">1. Tu Video Grabado + Imagen de Cierre</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Subir video del celular (MP4 / MOV / WEBM) *</label>
+              <input id="input-video" type="file" accept="video/*" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+              <div id="video-info" class="text-[var(--muted-foreground)] mt-1">Ningún video cargado</div>
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Imagen de cierre opcional (ej. PROMO_01..06)</label>
+              <input id="input-outro-img" type="file" accept="image/*" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+              <div id="outro-info" class="text-[var(--muted-foreground)] mt-1">Se mostrará 3 seg al final del video</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Volumen voz original del video (<span id="lbl-vid-vol">100%</span>)</label>
+              <input id="range-vid-vol" type="range" min="0" max="100" value="100" class="w-full accent-[var(--primary)]" />
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Duración tarjeta de cierre (segundos)</label>
+              <select id="sel-outro-sec" class="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                <option value="0">Sin cierre</option>
+                <option value="2.5">2.5 segundos</option>
+                <option value="3" selected>3 segundos</option>
+                <option value="4">4 segundos</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO B PANEL -->
+        <div id="panel-mode-b" class="hidden p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h2 class="text-sm font-semibold">1. Fotos PROMO + Tu Voz (Sin salir en cámara)</h2>
+          <div>
+            <label class="block text-[var(--muted-foreground)] mb-1">Selecciona de 1 a 6 fotos (ej. las PROMO_01..06 de Drive) *</label>
+            <input id="input-slides" type="file" accept="image/*" multiple class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+            <div id="slides-info" class="text-[var(--muted-foreground)] mt-1">Ninguna foto cargada (se aplicará zoom animado suave)</div>
+          </div>
+
+          <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] space-y-2.5">
+            <div class="font-semibold">Audio de Voz (elige una opción):</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[var(--muted-foreground)] mb-1">Opción 1: Subir audio / nota de voz</label>
+                <input id="input-voice-file" type="file" accept="audio/*" class="w-full px-2 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)]" />
+              </div>
+              <div>
+                <label class="block text-[var(--muted-foreground)] mb-1">Opción 2: Grabar voz aquí mismo</label>
+                <div class="flex items-center gap-2">
+                  <button id="btn-rec-mic" type="button" class="px-3 py-1.5 rounded-lg bg-[var(--error)] text-white font-semibold cursor-pointer hover:opacity-90">
+                    ● Grabar Voz
+                  </button>
+                  <span id="mic-status" class="text-[var(--muted-foreground)]">Listo</span>
+                </div>
+              </div>
+            </div>
+            <div id="voice-info" class="text-[var(--muted-foreground)]">Si no subes voz, el video durará 4 seg por foto.</div>
+          </div>
+        </div>
+
+        <!-- AUDIO DE FONDO (COMPARTIDO) -->
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h2 class="text-sm font-semibold">2. Música de Fondo Opcional</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Subir pista MP3 / M4A (opcional)</label>
+              <input id="input-bgm" type="file" accept="audio/*" class="w-full px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Volumen música de fondo (<span id="lbl-bgm-vol">20%</span>)</label>
+              <input id="range-bgm-vol" type="range" min="0" max="100" value="20" class="w-full accent-[var(--primary)]" />
+            </div>
+          </div>
+        </div>
+
+        <!-- TEXTOS Y DISEÑO -->
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h2 class="text-sm font-semibold">3. Textos en Pantalla y Marca Personal</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Título Gancho Superior</label>
+              <input id="txt-hook" type="text" value="¿VIVES EN ALAJUELA? GANA EXTRA ✨" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Zonas / Subtítulo Superior</label>
+              <input id="txt-sub" type="text" value="Coyol · La Garita · Poás · Barrio San José" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Cintillo Inferior (Contacto)</label>
+              <input id="txt-cta" type="text" value="Mariana Guzmán · WhatsApp: 7232-9408" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+            </div>
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Estilo de Color</label>
+              <select id="sel-theme" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                <option value="plum">Morado Avon & Dorado</option>
+                <option value="rose">Rosa Glam & Blanco</option>
+                <option value="dark">Negro Editorial & Oro</option>
+                <option value="none">Sin cintillos (Solo video/fotos limpias)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCIONES DE EXPORTACIÓN -->
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="btn-preview" class="px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] font-semibold hover:opacity-80 cursor-pointer">
+              ▶ Vista Previa
+            </button>
+            <button id="btn-stop" class="px-3 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:opacity-80 cursor-pointer">
+              ■ Detener
+            </button>
+            <button id="btn-export" class="px-5 py-2.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold hover:opacity-90 cursor-pointer ml-auto">
+              ⬇ Renderizar y Descargar Video
+            </button>
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between text-[var(--muted-foreground)]">
+              <span id="status-text">Listo para previsualizar o exportar.</span>
+              <span id="progress-pct" class="tabular-nums font-semibold">0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-[var(--background)] overflow-hidden">
+              <div id="progress-bar" class="h-full bg-[var(--success)] transition-all" style="width: 0%;"></div>
+            </div>
+          </div>
+          <p class="text-[var(--muted-foreground)]">
+            Nota: El video se genera en tiempo real dentro de tu navegador (720×1280 vertical, sin marcas de agua). No cierres esta pestaña mientras exporta.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Preview (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col items-center">
+        <div class="p-3 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col items-center space-y-2 w-full max-w-sm">
+          <div class="w-full flex items-center justify-between text-xs text-[var(--muted-foreground)] px-1">
+            <span>Vista Previa 9:16 (720×1280)</span>
+            <span id="preview-time" class="tabular-nums font-mono">00:00</span>
+          </div>
+          <canvas id="studio-canvas" width="720" height="1280" class="w-full rounded-xl bg-black border border-[var(--border)] aspect-[9/16]"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden media elements for decoding -->
+  <video id="src-video" playsinline class="hidden"></video>
+  <audio id="src-voice" class="hidden"></audio>
+  <audio id="src-bgm" loop class="hidden"></audio>
+
+  <script>
+    const canvas = document.getElementById("studio-canvas");
+    const ctx = canvas.getContext("2d");
+    const W = 720, H = 1280;
+
+    let mode = "A"; // "A" = video, "B" = slides+voice
+    let videoLoaded = false;
+    let outroImg = null;
+    let slides = []; // array of HTMLImageElement
+    let voiceLoaded = false;
+    let voiceDuration = 0;
+    let bgmLoaded = false;
+
+    let animFrame = null;
+    let isPlaying = false;
+    let isExporting = false;
+    let startTime = 0;
+    let totalDuration = 10;
+
+    // AudioContext for mixing & recording
+    let audioCtx = null;
+    let videoSrcNode = null;
+    let voiceSrcNode = null;
+    let bgmSrcNode = null;
+    let videoGain = null;
+    let voiceGain = null;
+    let bgmGain = null;
+    let mixDest = null;
+
+    const vidEl = document.getElementById("src-video");
+    const voiceEl = document.getElementById("src-voice");
+    const bgmEl = document.getElementById("src-bgm");
+
+    function initAudioGraph() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        mixDest = audioCtx.createMediaStreamDestination();
+
+        videoGain = audioCtx.createGain();
+        voiceGain = audioCtx.createGain();
+        bgmGain = audioCtx.createGain();
+
+        videoSrcNode = audioCtx.createMediaElementSource(vidEl);
+        voiceSrcNode = audioCtx.createMediaElementSource(voiceEl);
+        bgmSrcNode = audioCtx.createMediaElementSource(bgmEl);
+
+        videoSrcNode.connect(videoGain);
+        voiceSrcNode.connect(voiceGain);
+        bgmSrcNode.connect(bgmGain);
+
+        videoGain.connect(audioCtx.destination);
+        voiceGain.connect(audioCtx.destination);
+        bgmGain.connect(audioCtx.destination);
+
+        videoGain.connect(mixDest);
+        voiceGain.connect(mixDest);
+        bgmGain.connect(mixDest);
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      videoGain.gain.value = Number(document.getElementById("range-vid-vol").value) / 100;
+      voiceGain.gain.value = 1.0;
+      bgmGain.gain.value = Number(document.getElementById("range-bgm-vol").value) / 100;
+    }
+
+    // Mode Switching
+    function setMode(m) {
+      mode = m;
+      stopPlayback();
+      document.getElementById("btn-mode-a").classList.toggle("mode-active", m === "A");
+      document.getElementById("btn-mode-a").classList.toggle("bg-[var(--card)]", m !== "A");
+      document.getElementById("btn-mode-b").classList.toggle("mode-active", m === "B");
+      document.getElementById("btn-mode-b").classList.toggle("bg-[var(--card)]", m !== "B");
+      document.getElementById("panel-mode-a").classList.toggle("hidden", m !== "A");
+      document.getElementById("panel-mode-b").classList.toggle("hidden", m !== "B");
+      drawStaticPreview();
+    }
+
+    document.getElementById("btn-mode-a").addEventListener("click", () => setMode("A"));
+    document.getElementById("btn-mode-b").addEventListener("click", () => setMode("B"));
+
+    // Volume sliders
+    document.getElementById("range-vid-vol").addEventListener("input", (e) => {
+      document.getElementById("lbl-vid-vol").textContent = e.target.value + "%";
+      if (videoGain) videoGain.gain.value = Number(e.target.value) / 100;
+    });
+    document.getElementById("range-bgm-vol").addEventListener("input", (e) => {
+      document.getElementById("lbl-bgm-vol").textContent = e.target.value + "%";
+      if (bgmGain) bgmGain.gain.value = Number(e.target.value) / 100;
+    });
+
+    // File Loaders
+    document.getElementById("input-video").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      vidEl.src = URL.createObjectURL(f);
+      vidEl.onloadedmetadata = () => {
+        videoLoaded = true;
+        document.getElementById("video-info").textContent = `Cargado: ${f.name} (${vidEl.duration.toFixed(1)}s)`;
+        vidEl.currentTime = 0.1;
+      };
+      vidEl.onseeked = () => { if (!isPlaying) drawStaticPreview(); };
+    });
+
+    document.getElementById("input-outro-img").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const img = new Image();
+      img.onload = () => {
+        outroImg = img;
+        document.getElementById("outro-info").textContent = `Cierre cargado: ${f.name}`;
+      };
+      img.src = URL.createObjectURL(f);
+    });
+
+    document.getElementById("input-slides").addEventListener("change", (e) => {
+      const files = Array.from(e.target.files).slice(0, 6);
+      if (!files.length) return;
+      slides = [];
+      let loaded = 0;
+      files.forEach((f, idx) => {
+        const img = new Image();
+        img.onload = () => {
+          slides[idx] = img;
+          loaded++;
+          if (loaded === files.length) {
+            document.getElementById("slides-info").textContent = `${slides.length} foto(s) cargada(s) listas para animar.`;
+            drawStaticPreview();
+          }
+        };
+        img.src = URL.createObjectURL(f);
+      });
+    });
+
+    document.getElementById("input-voice-file").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      loadVoiceBlob(f, f.name);
+    });
+
+    function loadVoiceBlob(blob, label) {
+      voiceEl.src = URL.createObjectURL(blob);
+      voiceEl.onloadedmetadata = () => {
+        voiceLoaded = true;
+        voiceDuration = voiceEl.duration || 10;
+        document.getElementById("voice-info").textContent = `Voz lista: ${label} (${voiceDuration.toFixed(1)}s)`;
+      };
+    }
+
+    document.getElementById("input-bgm").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      bgmEl.src = URL.createObjectURL(f);
+      bgmLoaded = true;
+    });
+
+    // Mic Recorder for Modo B
+    let micRecorder = null;
+    let micChunks = [];
+    let isRecordingMic = false;
+    const btnMic = document.getElementById("btn-rec-mic");
+
+    btnMic.addEventListener("click", async () => {
+      if (!isRecordingMic) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          micRecorder = new MediaRecorder(stream);
+          micChunks = [];
+          micRecorder.ondataavailable = (ev) => { if (ev.data.size > 0) micChunks.push(ev.data); };
+          micRecorder.onstop = () => {
+            const blob = new Blob(micChunks, { type: "audio/webm" });
+            loadVoiceBlob(blob, "Grabación de micrófono");
+            stream.getTracks().forEach(t => t.stop());
+          };
+          micRecorder.start();
+          isRecordingMic = true;
+          btnMic.textContent = "■ Detener Grabación";
+          document.getElementById("mic-status").textContent = "Grabando...";
+        } catch (err) {
+          alert("No se pudo acceder al micrófono. Verifica los permisos del navegador.");
+        }
+      } else {
+        micRecorder.stop();
+        isRecordingMic = false;
+        btnMic.textContent = "● Grabar Voz";
+        document.getElementById("mic-status").textContent = "Grabación guardada";
+      }
+    });
+
+    // Drawing Helpers
+    function drawCoverImage(img, zoom = 1.0) {
+      const iw = img.videoWidth || img.naturalWidth || img.width;
+      const ih = img.videoHeight || img.naturalHeight || img.height;
+      if (!iw || !ih) return;
+      const scale = Math.max(W / iw, H / ih) * zoom;
+      const dw = iw * scale;
+      const dh = ih * scale;
+      const dx = (W - dw) / 2;
+      const dy = (H - dh) / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    function drawOverlays() {
+      const theme = document.getElementById("sel-theme").value;
+      if (theme === "none") return;
+
+      const palettes = {
+        plum: { topBg: "rgba(88, 28, 135, 0.88)", accent: "#F59E0B", botBg: "rgba(17, 24, 39, 0.90)", pill: "#10B981" },
+        rose: { topBg: "rgba(190, 24, 93, 0.86)", accent: "#FDE68A", botBg: "rgba(131, 24, 67, 0.90)", pill: "#10B981" },
+        dark: { topBg: "rgba(15, 23, 42, 0.88)", accent: "#FBBF24", botBg: "rgba(0, 0, 0, 0.92)", pill: "#22C55E" }
+      };
+      const pal = palettes[theme] || palettes.plum;
+
+      const hook = document.getElementById("txt-hook").value.trim();
+      const sub = document.getElementById("txt-sub").value.trim();
+      const cta = document.getElementById("txt-cta").value.trim();
+
+      // Top Hook Banner
+      if (hook || sub) {
+        ctx.fillStyle = pal.topBg;
+        ctx.beginPath();
+        ctx.roundRect(36, 48, W - 72, sub ? 132 : 90, 22);
+        ctx.fill();
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 34px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(hook.slice(0, 38), W / 2, 102);
+
+        if (sub) {
+          ctx.fillStyle = pal.accent;
+          ctx.font = "bold 24px sans-serif";
+          ctx.fillText(sub.slice(0, 48), W / 2, 150);
+        }
+      }
+
+      // Bottom Contact Bar
+      if (cta) {
+        ctx.fillStyle = pal.botBg;
+        ctx.beginPath();
+        ctx.roundRect(36, H - 148, W - 72, 92, 22);
+        ctx.fill();
+
+        ctx.strokeStyle = pal.accent;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(cta.slice(0, 44), W / 2, H - 92);
+      }
+    }
+
+    function drawStaticPreview() {
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(0, 0, W, H);
+      if (mode === "A" && videoLoaded) {
+        drawCoverImage(vidEl, 1.0);
+      } else if (mode === "B" && slides.length > 0) {
+        drawCoverImage(slides[0], 1.02);
+      } else {
+        ctx.fillStyle = "#9CA3AF";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(mode === "A" ? "Sube tu video en el paso 1" : "Sube fotos PROMO en el paso 1", W / 2, H / 2);
+      }
+      drawOverlays();
+    }
+
+    ["txt-hook", "txt-sub", "txt-cta", "sel-theme"].forEach(id => {
+      document.getElementById(id).addEventListener("input", () => { if (!isPlaying) drawStaticPreview(); });
+      document.getElementById(id).addEventListener("change", () => { if (!isPlaying) drawStaticPreview(); });
+    });
+
+    function computeDuration() {
+      if (mode === "A") {
+        const vidDur = videoLoaded ? vidEl.duration : 5;
+        const outroDur = outroImg ? Number(document.getElementById("sel-outro-sec").value) : 0;
+        return vidDur + outroDur;
+      } else {
+        if (voiceLoaded && voiceDuration > 0) return voiceDuration;
+        return Math.max(4, slides.length * 4);
+      }
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      isExporting = false;
+      cancelAnimationFrame(animFrame);
+      vidEl.pause();
+      voiceEl.pause();
+      bgmEl.pause();
+      document.getElementById("preview-time").textContent = "00:00";
+    }
+
+    function startRenderLoop(onDone) {
+      totalDuration = computeDuration();
+      isPlaying = true;
+      startTime = performance.now();
+
+      if (mode === "A" && videoLoaded) {
+        vidEl.currentTime = 0;
+        vidEl.play();
+      }
+      if (mode === "B" && voiceLoaded) {
+        voiceEl.currentTime = 0;
+        voiceEl.play();
+      }
+      if (bgmLoaded) {
+        bgmEl.currentTime = 0;
+        bgmEl.play();
+      }
+
+      const outroDur = outroImg ? Number(document.getElementById("sel-outro-sec").value) : 0;
+      const vidDur = videoLoaded ? vidEl.duration : 0;
+
+      function tick(now) {
+        if (!isPlaying) return;
+        const elapsed = (now - startTime) / 1000;
+        const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+
+        document.getElementById("progress-bar").style.width = pct + "%";
+        document.getElementById("progress-pct").textContent = pct + "%";
+        document.getElementById("preview-time").textContent = `00:${String(Math.floor(elapsed)).padStart(2, "0")}`;
+
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, W, H);
+
+        if (mode === "A") {
+          if (elapsed <= vidDur && videoLoaded) {
+            drawCoverImage(vidEl, 1.0);
+            drawOverlays();
+          } else if (outroImg && outroDur > 0) {
+            const outroElapsed = elapsed - vidDur;
+            const zoom = 1.0 + (outroElapsed / outroDur) * 0.05;
+            drawCoverImage(outroImg, zoom);
+          }
+        } else {
+          if (slides.length > 0) {
+            const slideDur = totalDuration / slides.length;
+            const idx = Math.min(slides.length - 1, Math.floor(elapsed / slideDur));
+            const localT = (elapsed % slideDur) / slideDur;
+            const zoom = 1.0 + localT * 0.08; // Ken Burns zoom
+            drawCoverImage(slides[idx], zoom);
+          }
+          drawOverlays();
+        }
+
+        if (elapsed >= totalDuration) {
+          stopPlayback();
+          document.getElementById("progress-bar").style.width = "100%";
+          document.getElementById("progress-pct").textContent = "100%";
+          if (onDone) onDone();
+          return;
+        }
+        animFrame = requestAnimationFrame(tick);
+      }
+
+      animFrame = requestAnimationFrame(tick);
+    }
+
+    document.getElementById("btn-preview").addEventListener("click", () => {
+      if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
+      if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
+      stopPlayback();
+      initAudioGraph();
+      document.getElementById("status-text").textContent = "Reproduciendo vista previa...";
+      startRenderLoop(() => {
+        document.getElementById("status-text").textContent = "Vista previa finalizada.";
+      });
+    });
+
+    document.getElementById("btn-stop").addEventListener("click", () => {
+      stopPlayback();
+      document.getElementById("status-text").textContent = "Detenido.";
+    });
+
+    document.getElementById("btn-export").addEventListener("click", () => {
+      if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
+      if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
+      if (isExporting) return;
+
+      stopPlayback();
+      initAudioGraph();
+      isExporting = true;
+      document.getElementById("status-text").textContent = "Renderizando video... No cierres esta ventana.";
+
+      const canvasStream = canvas.captureStream(30);
+      const combinedStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...mixDest.stream.getAudioTracks()
+      ]);
+
+      const mimeType = MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")
+        ? "video/mp4"
+        : MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
+        ? "video/webm;codecs=vp9,opus"
+        : "video/webm";
+
+      const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 3500000 });
+      const chunks = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `avon_mariana_72329408_${Date.now()}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("status-text").textContent = `¡Video descargado (.${ext})! Listo para TikTok, Reels y WhatsApp.`;
+        isExporting = false;
+      };
+
+      recorder.start(200);
+      startRenderLoop(() => {
+        setTimeout(() => recorder.stop(), 250);
+      });
+    });
+
+    drawStaticPreview();
+  </script>
+</body>
+</html>

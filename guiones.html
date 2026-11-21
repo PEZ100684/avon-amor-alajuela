@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creador de Videos Avon — Mariana Guzmán (Alajuela)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+  </style>
+
+  <style>
+    :root {
+      --background: #f8fafc;
+      --content: #ffffff;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --card-border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #64748b;
+      --primary: #7c3aed;
+      --primary-foreground: #ffffff;
+      --secondary: #f1f5f9;
+      --secondary-foreground: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --chart-1: #6366f1;
+      --chart-2: #3b82f6;
+      --chart-3: #06b6d4;
+      --chart-4: #a855f7;
+    }
+  </style>
+
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-0">
+  <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs font-bold text-purple-700">AVON AMOR · Mariana Guzmán (7232-9408)</span>
+      <nav class="flex flex-wrap items-center gap-1.5">
+        <a href="index.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Inicio</a><a href="crm.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">CRM Reclutamiento</a><a href="guiones.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-purple-700 text-white">Creador Guiones</a><a href="editor.html" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">Editor Video 9:16</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-5 space-y-5">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-4 border-b border-[var(--border)]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-bold text-sm">🎬</span>
+          <h1 class="text-xl font-bold tracking-tight">Creador de Videos Diarios Avon — Alajuela</h1>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Guiones de 30–45 segundos para TikTok, Instagram Reels, Facebook Reels y YouTube Shorts · Contacto: <strong>Mariana Guzmán (7232-9408)</strong>
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-open-prompter" class="px-4 py-2 text-xs font-semibold rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 cursor-pointer">
+          Abrir Teleprompter para Grabar
+        </button>
+      </div>
+    </header>
+
+    <!-- Noticias y Tendencias Avon 2026 -->
+    <section class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-semibold">Noticias y Tendencias Reales de Avon (Base para tus videos de hoy)</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Selecciona una noticia o tendencia para convertirla en un video de reclutamiento.</p>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-full border border-[var(--border)] bg-[var(--background)] text-[var(--muted-foreground)]">Actualizado C18 · 2026</span>
+      </div>
+      <div id="news-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+    </section>
+
+    <!-- Configurador de Guion -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3 text-xs">
+        <h2 class="text-sm font-semibold">Configurar Video del Día</h2>
+
+        <div>
+          <label class="block text-[var(--muted-foreground)] mb-1">Ángulo / Tema del video</label>
+          <select id="sel-angle" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+            <option value="iconic140">Noticia: 140 años Avon & 13 perfumes/minuto (Iconic)</option>
+            <option value="coyol">Zonas Francas El Coyol: Vende a tus compañeras</option>
+            <option value="lichi">Producto Gancho: Set Lichi 6 en 1 (Primer pedido en 1 día)</option>
+            <option value="aguinaldo">Ingreso extra / Aguinaldo desde casa</option>
+            <option value="dudas">Respondiendo dudas: ¿Necesito invertir dinero?</option>
+            <option value="exvendedoras">Reactivación: ¿Antes vendías Avon en Alajuela?</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[var(--muted-foreground)] mb-1">Zona principal a mencionar</label>
+          <select id="sel-zone" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+            <option value="Coyol, La Garita y Cacao">Coyol, La Garita y Cacao</option>
+            <option value="Poás, Carrillos, Carrizal y Sabanilla">Poás, Carrillos, Carrizal y Sabanilla</option>
+            <option value="Barrio San José, Pueblo Nuevo y Tuetal">Barrio San José, Pueblo Nuevo y Tuetal</option>
+            <option value="San Isidro, Los Jardines, La Trinidad e IMAS">San Isidro, Los Jardines, La Trinidad e IMAS</option>
+            <option value="todo Alajuela (Coyol, Poás, La Garita, Barrio San José y alrededores)">Todo Alajuela (15 zonas)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[var(--muted-foreground)] mb-1">Formato de grabación</label>
+          <select id="sel-format" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+            <option value="camara">Mariana hablando a cámara (Máxima confianza)</option>
+            <option value="vozoff">Sin salir en cámara (Voz en off + fotos de catálogo)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[var(--muted-foreground)] mb-1">Plataforma destino</label>
+          <select id="sel-platform" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+            <option value="Todas (TikTok + Reels + Shorts)">Todas (TikTok + Reels + Shorts)</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Instagram Reels">Instagram Reels</option>
+            <option value="Facebook Reels">Facebook Reels (Grupos Alajuela)</option>
+            <option value="YouTube Shorts">YouTube Shorts</option>
+          </select>
+        </div>
+
+        <button id="btn-generate" class="w-full py-2.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold hover:opacity-90 cursor-pointer">
+          Generar Guion Completo
+        </button>
+
+        <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] space-y-1 text-[var(--muted-foreground)]">
+          <div class="font-semibold text-[var(--foreground)]">Flujo rápido en CapCut (5 min):</div>
+          <div>1. Graba leyendo el Teleprompter (vertical 9:16).</div>
+          <div>2. En CapCut usa <strong>Subtítulos automáticos</strong>.</div>
+          <div>3. Pega una de las 6 imágenes nuevas de Drive al final como cierre con el # <strong>7232-9408</strong>.</div>
+        </div>
+      </div>
+
+      <!-- Resultado del Guion -->
+      <div class="lg:col-span-2 space-y-4">
+        <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold">Guion Estructurado Segundo a Segundo</h2>
+            <button id="btn-copy-script" class="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] hover:opacity-80 cursor-pointer">
+              Copiar Guion
+            </button>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+              <div class="font-semibold text-[var(--primary)] mb-1">0–3 seg · GANCHO (Detener el scroll)</div>
+              <p id="out-hook" class="leading-relaxed"></p>
+            </div>
+            <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+              <div class="font-semibold text-[var(--success)] mb-1">3–25 seg · DESARROLLO (Noticia / Beneficio de negocio)</div>
+              <p id="out-body" class="leading-relaxed"></p>
+            </div>
+            <div class="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+              <div class="font-semibold text-[var(--warning)] mb-1">25–38 seg · LLAMADO A LA ACCIÓN LOCAL</div>
+              <p id="out-cta" class="leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Textos para CapCut y Redes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Textos en Pantalla (CapCut)</h3>
+              <button onclick="copyText('out-onscreen')" class="px-2 py-1 rounded border border-[var(--border)] cursor-pointer">Copiar</button>
+            </div>
+            <pre id="out-onscreen" class="whitespace-pre-wrap font-sans text-[var(--muted-foreground)] leading-relaxed"></pre>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Descripción y Hashtags</h3>
+              <button onclick="copyText('out-caption')" class="px-2 py-1 rounded border border-[var(--border)] cursor-pointer">Copiar</button>
+            </div>
+            <pre id="out-caption" class="whitespace-pre-wrap font-sans text-[var(--muted-foreground)] leading-relaxed"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL TELEPROMPTER -->
+  <div id="prompter-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col p-5 text-white">
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/20 text-xs">
+      <div class="font-bold text-sm">Teleprompter — Mariana Guzmán (Mira directo a la cámara)</div>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-2">
+          Velocidad:
+          <input id="prompter-speed" type="range" min="1" max="5" value="2" />
+        </label>
+        <button id="btn-prompter-play" class="px-3 py-1.5 rounded bg-emerald-600 font-semibold cursor-pointer">Iniciar / Pausar</button>
+        <button id="btn-prompter-reset" class="px-3 py-1.5 rounded border border-white/30 cursor-pointer">Reiniciar</button>
+        <button id="btn-prompter-close" class="px-3 py-1.5 rounded border border-white/30 cursor-pointer">Cerrar</button>
+      </div>
+    </div>
+    <div id="prompter-scroll" class="flex-1 overflow-y-auto max-w-2xl mx-auto py-16 px-4 text-center">
+      <p id="prompter-text" class="text-2xl md:text-3xl font-semibold leading-relaxed"></p>
+      <div class="h-64"></div>
+    </div>
+  </div>
+
+  <script>
+    const NEWS_ITEMS = [
+      {
+        id: "iconic140",
+        tag: "Noticia 2026",
+        title: "Avon cumple 140 años y vende 13 perfumes por minuto",
+        summary: "Lanzamiento de la Iconic Collection (Topaze, Sweet Honesty, Toque de Amor y Charisma) bajo la tendencia Newstalgia."
+      },
+      {
+        id: "lichi",
+        tag: "Catálogo C18 CR",
+        title: "Cremas Avon Care 6 en 1 con 25% OFF",
+        summary: "Set de 3 cremas de Lichi y Aloe Vera a ₡14.495. Alta rotación en oficinas, Zonas Francas y regalos de fin de año."
+      },
+      {
+        id: "coyol",
+        tag: "Oportunidad Local",
+        title: "Temporada de Navidad y Aguinaldos en Alajuela",
+        summary: "Noviembre y diciembre disparan la compra de regalos. Ideal para reclutar en El Coyol, Poás, La Garita y Barrio San José."
+      }
+    ];
+
+    const TEMPLATES = {
+      iconic140: {
+        hook: "¿Sabías que Avon vende 13 perfumes POR MINUTO en todo el mundo?",
+        body: "Este año Avon cumple 140 años y acaba de lanzar su nueva colección Iconic: Topaze, Sweet Honesty, Toque de Amor y Charisma. En temporada navideña los perfumes son lo que MÁS rápido se vende y lo que más ganancia te deja.",
+        cta: "Si vives en {ZONE} y quieres empezar a vender Avon desde tu WhatsApp conmigo, escríbeme al 7232-9408. Soy Mariana Guzmán y te acompaño paso a paso.",
+        onscreen: "0-3s: ¡13 PERFUMES POR MINUTO! 🤯\n3-15s: Nueva Colección Iconic Avon (140 años)\n15-25s: Gana dinero extra esta Navidad 🎄\n25-38s: Escríbele a Mariana Guzmán 📲 7232-9408",
+        visualNote: "[Mostrar la imagen PROMO_01 o los 4 frascos de Iconic]"
+      },
+      coyol: {
+        hook: "Si trabajas en Zona Franca El Coyol, estás dejando ir dinero extra cada quincena.",
+        body: "Convives todos los días con decenas de compañeras que compran cremas, labiales y perfumes para Navidad. No tienes que salir a buscar clientes: solo pasas el catálogo digital de Avon en la hora de café y cobras en quincena.",
+        cta: "Estoy buscando 1 vendedora por empresa en {ZONE}. Escríbeme al WhatsApp 7232-9408, soy Mariana Guzmán y te ayudo a hacer tu primer pedido esta misma semana.",
+        onscreen: "0-3s: ¿Trabajas en El Coyol? 👀\n3-15s: Tus compañeras ya compran maquillaje y cremas\n15-25s: Pasa el catálogo en tu hora de café ☕\n25-38s: Info con Mariana Guzmán: 7232-9408",
+        visualNote: "[Mostrar PROMO_02 Set Lichi ₡14.495]"
+      },
+      lichi: {
+        hook: "Con este set de 3 cremas puedes hacer tu primer pedido de Avon en un solo día.",
+        body: "Es la nueva fórmula 6 en 1 de Lichi y Aloe Vera: trae crema de 1 litro, de 350 ml y de manos por solo ₡14.495 con 25% de descuento. Es un regalo navideño perfecto que todas tus vecinas y amigas te van a pedir apenas lo subas a tus Estados de WhatsApp.",
+        cta: "Si estás en {ZONE} y quieres generar tu propio ingreso extra, escríbeme 'INFO' al 7232-9408. Soy Mariana Guzmán, tu Líder Avon en Alajuela.",
+        onscreen: "0-3s: Haz tu 1er pedido en 1 día 🔥\n3-15s: Set de 3 cremas 6 en 1 a ₡14.495\n15-25s: Súbelo a Estados de WhatsApp 📲\n25-38s: Únete hoy · Mariana Guzmán 7232-9408",
+        visualNote: "[Mostrar PROMO_02 Set Lichi]"
+      },
+      aguinaldo: {
+        hook: "¿Te gustaría armar tu propio aguinaldo extra sin descuidar a tu familia?",
+        body: "Con Avon manejas tu propio horario desde casa. Tú decides cuánto vender compartiendo las promociones de Navidad por WhatsApp, y yo te entrego las imágenes listas para que no pierdas tiempo diseñando nada.",
+        cta: "Tengo cupos abiertos esta semana para nuevas vendedoras en {ZONE}. Mándame un WhatsApp al 7232-9408, soy Mariana Guzmán y te explico en 5 minutos.",
+        onscreen: "0-3s: Crea tu propio aguinaldo 🎄\n3-15s: Sin horarios fijos · Desde tu celular\n15-25s: Te doy las imágenes y capacitación gratis\n25-38s: WhatsApp Mariana Guzmán: 7232-9408",
+        visualNote: "[Mostrar PROMO_04 Toque de Amor Lovely]"
+      },
+      dudas: {
+        hook: "¿Necesitas invertir mucho dinero para empezar a vender Avon en Alajuela?",
+        body: "La respuesta es NO. Muchas mujeres en {ZONE} no empiezan porque creen que tienen que comprar mercancía primero. Con Avon tú muestras el catálogo digital, recoges los pedidos de tus conocidas y ganas por cada venta + premios de bienvenida.",
+        cta: "Si quieres que te explique sin compromiso cómo iniciar esta semana, escríbeme al 7232-9408. Soy Mariana Guzmán.",
+        onscreen: "0-3s: ¿Hay que invertir dinero en Avon? 🤔\n3-15s: NO compras stock por adelantado\n15-25s: Vendes por catálogo digital + premios 🎁\n25-38s: Pregunta hoy: 7232-9408 (Mariana)",
+        visualNote: "[Mariana explicando o voz en off con PROMO_05]"
+      },
+      exvendedoras: {
+        hook: "¿Antes vendías Avon en Alajuela y lo dejaste por falta de apoyo?",
+        body: "Esta Campaña 18 tiene lanzamientos increíbles de Navidad y premios buenísimos para quienes quieren retomar. La diferencia conmigo es que no te dejo sola: te paso material listo para WhatsApp y te acompaño en cada campaña.",
+        cta: "Si vives en {ZONE} y quieres volver a generar ingresos extra, escríbeme al 7232-9408. Soy Mariana Guzmán y me encantará recibirte en mi equipo.",
+        onscreen: "0-3s: ¿Antes vendías Avon? 💜\n3-15s: Vuelve con acompañamiento real\n15-25s: Material listo para WhatsApp cada semana\n25-38s: Mariana Guzmán · 7232-9408",
+        visualNote: "[Mostrar PROMO_06 Charisma Magnetic]"
+      }
+    };
+
+    function renderNewsCards() {
+      const container = document.getElementById("news-cards");
+      container.innerHTML = NEWS_ITEMS.map(n => `
+        <button onclick="selectNews('${n.id}')" class="text-left p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)] transition cursor-pointer space-y-1">
+          <span class="inline-block text-xs font-semibold text-[var(--primary)]">${n.tag}</span>
+          <div class="text-xs font-bold">${n.title}</div>
+          <p class="text-xs text-[var(--muted-foreground)]">${n.summary}</p>
+        </button>
+      `).join("");
+    }
+
+    window.selectNews = function(id) {
+      document.getElementById("sel-angle").value = id;
+      generateScript();
+    };
+
+    function generateScript() {
+      const angle = document.getElementById("sel-angle").value;
+      const zone = document.getElementById("sel-zone").value;
+      const format = document.getElementById("sel-format").value;
+      const platform = document.getElementById("sel-platform").value;
+
+      const tpl = TEMPLATES[angle] || TEMPLATES.iconic140;
+      const hook = tpl.hook.replace("{ZONE}", zone);
+      const body = tpl.body.replace("{ZONE}", zone);
+      const cta = tpl.cta.replace("{ZONE}", zone);
+
+      document.getElementById("out-hook").textContent = hook;
+      document.getElementById("out-body").textContent = (format === "vozoff" ? tpl.visualNote + " " : "") + body;
+      document.getElementById("out-cta").textContent = cta;
+      document.getElementById("out-onscreen").textContent = tpl.onscreen;
+
+      const caption = `✨ ¿Vives en ${zone} y buscas un ingreso extra desde casa?\nÚnete a mi equipo de vendedoras Avon esta Campaña 18 🎄💜\n\n📲 Escríbeme directo al WhatsApp: 7232-9408 (Mariana Guzmán)\n\n#AvonCostaRica #Alajuela #ElCoyol #LaGarita #Poas #EmpleoAlajuela #EmprendedorasCR #IngresoExtraCR #VendedorasAvon`;
+      document.getElementById("out-caption").textContent = caption;
+
+      document.getElementById("prompter-text").innerHTML =
+        `<span class="text-amber-300">${hook}</span><br><br>${body}<br><br><span class="text-emerald-300">${cta}</span>`;
+    }
+
+    window.copyText = function(elId) {
+      const text = document.getElementById(elId).textContent;
+      navigator.clipboard.writeText(text);
+    };
+
+    document.getElementById("btn-copy-script").addEventListener("click", () => {
+      const full = [
+        "GANCHO (0-3s): " + document.getElementById("out-hook").textContent,
+        "DESARROLLO (3-25s): " + document.getElementById("out-body").textContent,
+        "LLAMADO A LA ACCIÓN (25-38s): " + document.getElementById("out-cta").textContent
+      ].join("\n\n");
+      navigator.clipboard.writeText(full);
+    });
+
+    document.getElementById("btn-generate").addEventListener("click", generateScript);
+    ["sel-angle", "sel-zone", "sel-format", "sel-platform"].forEach(id => {
+      document.getElementById(id).addEventListener("change", generateScript);
+    });
+
+    // Teleprompter logic
+    let prompterTimer = null;
+    const prompterModal = document.getElementById("prompter-modal");
+    const prompterScroll = document.getElementById("prompter-scroll");
+
+    document.getElementById("btn-open-prompter").addEventListener("click", () => {
+      prompterScroll.scrollTop = 0;
+      prompterModal.classList.remove("hidden");
+    });
+
+    document.getElementById("btn-prompter-close").addEventListener("click", () => {
+      clearInterval(prompterTimer);
+      prompterTimer = null;
+      prompterModal.classList.add("hidden");
+    });
+
+    document.getElementById("btn-prompter-reset").addEventListener("click", () => {
+      clearInterval(prompterTimer);
+      prompterTimer = null;
+      prompterScroll.scrollTop = 0;
+    });
+
+    document.getElementById("btn-prompter-play").addEventListener("click", () => {
+      if (prompterTimer) {
+        clearInterval(prompterTimer);
+        prompterTimer = null;
+      } else {
+        prompterTimer = setInterval(() => {
+          const speed = Number(document.getElementById("prompter-speed").value);
+          prompterScroll.scrollTop += speed;
+        }, 40);
+      }
+    });
+
+    renderNewsCards();
+    generateScript();
+  </script>
+</body>
+</html>
