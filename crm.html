@@ -66,6 +66,9 @@
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-sheets-sync" class="px-3 py-2 text-xs font-semibold rounded-lg border border-emerald-500 text-emerald-700 bg-emerald-50 hover:opacity-85 transition cursor-pointer">
+          ☁ Conectar Google Sheets
+        </button>
         <button id="btn-export-csv" class="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] hover:opacity-85 transition cursor-pointer">
           Exportar Excel (CSV)
         </button>
@@ -332,6 +335,35 @@
     </div>
   </div>
 
+  <!-- MODAL: GOOGLE SHEETS SYNC -->
+  <div id="sheets-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-xl bg-[var(--card)] border border-[var(--border)] p-5 space-y-3 text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+        <h3 class="text-sm font-bold">Sincronizar con Google Sheets (PC y Celular)</h3>
+        <button id="btn-close-sheets" class="px-2 py-1 rounded border border-[var(--border)] cursor-pointer">Cerrar</button>
+      </div>
+      <p class="text-[var(--muted-foreground)]">
+        Pega aquí la <strong>URL de la aplicación web</strong> de Google Apps Script (archivo <code>apps_script_avon_crm.gs</code>) para guardar y leer tus prospectos en tiempo real desde <code>CRM_Reclutamiento</code>.
+      </p>
+      <div>
+        <label class="block font-semibold mb-1">URL del Web App de Google Apps Script:</label>
+        <input id="input-sheets-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]" />
+      </div>
+      <div id="share-form-box" class="hidden p-3 rounded-lg border border-emerald-200 bg-emerald-50 space-y-1.5">
+        <div class="font-semibold text-emerald-800">Enlace público listo para TikTok / Instagram / WhatsApp:</div>
+        <input id="input-public-form-url" type="text" readonly class="w-full px-2.5 py-1.5 rounded border border-emerald-300 bg-white text-slate-700" />
+        <button type="button" id="btn-copy-public-form" class="px-3 py-1 rounded bg-emerald-600 text-white font-semibold cursor-pointer">Copiar enlace para redes</button>
+      </div>
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" id="btn-disconnect-sheets" class="px-3 py-2 rounded-lg border border-[var(--error)] text-[var(--error)] cursor-pointer">Desconectar</button>
+        <div class="flex gap-2">
+          <button type="button" id="btn-refresh-sheets" class="px-3 py-2 rounded-lg border border-[var(--border)] cursor-pointer">🔄 Recargar desde Sheets</button>
+          <button type="button" id="btn-save-sheets" class="px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold cursor-pointer">Guardar y Conectar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const ZONES = [
       "Coyol",
@@ -499,10 +531,88 @@
       }
     ];
 
+    const SHEETS_API_KEY = "avon_sheets_api_url";
+    let sheetsApiUrl = localStorage.getItem(SHEETS_API_KEY) || "";
     let prospects = [];
     let currentTab = "dashboard";
 
+    function stageIdFromLabel(label) {
+      const found = STAGES.find(s => s.label.toLowerCase() === (label || "").toLowerCase());
+      return found ? found.id : "nuevo";
+    }
+
+    function updateSheetsButton() {
+      const btn = document.getElementById("btn-sheets-sync");
+      if (sheetsApiUrl) {
+        btn.textContent = "☁ Sheets Conectado (Sincronizar)";
+      } else {
+        btn.textContent = "☁ Conectar Google Sheets";
+      }
+    }
+
+    async function syncFromSheets() {
+      if (!sheetsApiUrl) return;
+      try {
+        const res = await fetch(sheetsApiUrl);
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.data)) {
+          prospects = json.data.map((r, i) => ({
+            id: "row_" + r.row,
+            row: r.row,
+            name: r.name,
+            phone: r.phone,
+            email: r.email || "",
+            zone: r.zone || "Coyol",
+            profile: r.profile || "Ama de casa / Mamá",
+            source: r.source || "Formulario Web",
+            stage: stageIdFromLabel(r.stageLabel),
+            called: r.called || "No",
+            callCount: r.called === "Si" ? 1 : 0,
+            lastCall: r.lastCall || "",
+            cita: r.cita || "Pendiente",
+            citaDate: r.citaDate || "",
+            nextFollowup: r.nextFollowup || "",
+            notes: r.notes || ""
+          })).reverse();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(prospects));
+          localStorage.setItem(DEMO_FLAG_KEY, "false");
+          updateDemoBanner();
+          renderAll();
+        }
+      } catch (err) {
+        console.error("Error sincronizando con Google Sheets:", err);
+      }
+    }
+
+    async function pushToSheets(action, prospect) {
+      if (!sheetsApiUrl) return;
+      try {
+        const payload = {
+          action,
+          row: prospect && prospect.row,
+          prospect: prospect ? {
+            ...prospect,
+            stageLabel: getStageInfo(prospect.stage).label
+          } : undefined
+        };
+        const res = await fetch(sheetsApiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (action === "add" && json.ok && json.row && prospect) {
+          prospect.row = json.row;
+          prospect.id = "row_" + json.row;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(prospects));
+        }
+      } catch (err) {
+        console.error("Error enviando a Google Sheets:", err);
+      }
+    }
+
     function loadData() {
+      updateSheetsButton();
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
@@ -516,6 +626,7 @@
         localStorage.setItem(DEMO_FLAG_KEY, "true");
       }
       updateDemoBanner();
+      if (sheetsApiUrl) syncFromSheets();
     }
 
     function saveData() {
@@ -819,6 +930,7 @@
         p.cita = "Si";
       }
       saveData();
+      pushToSheets("update", p);
     };
 
     window.quickLogCall = function(id) {
@@ -831,6 +943,7 @@
         p.stage = "llamada";
       }
       saveData();
+      pushToSheets("update", p);
     };
 
     window.openWhatsAppModal = function(id) {
@@ -946,20 +1059,72 @@
 
       if (existing) {
         Object.assign(existing, data);
+        closeModal();
+        saveData();
+        pushToSheets("update", existing);
       } else {
         prospects.unshift(data);
         localStorage.setItem(DEMO_FLAG_KEY, "false");
+        closeModal();
+        saveData();
+        pushToSheets("add", data);
       }
-      closeModal();
-      saveData();
     });
 
     document.getElementById("btn-delete-prospect").addEventListener("click", () => {
       const id = document.getElementById("field-id").value;
       if (!id) return;
+      const target = prospects.find(x => x.id === id);
       prospects = prospects.filter(x => x.id !== id);
       closeModal();
       saveData();
+      if (target && target.row) pushToSheets("delete", target);
+    });
+
+    // Google Sheets Sync Modal Handlers
+    function openSheetsModal() {
+      document.getElementById("input-sheets-url").value = sheetsApiUrl;
+      const box = document.getElementById("share-form-box");
+      if (sheetsApiUrl) {
+        const base = window.location.href.replace(/crm\.html.*$/, "registro.html");
+        document.getElementById("input-public-form-url").value = `${base}?api=${encodeURIComponent(sheetsApiUrl)}`;
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+      document.getElementById("sheets-modal").classList.remove("hidden");
+    }
+
+    document.getElementById("btn-sheets-sync").addEventListener("click", () => {
+      if (sheetsApiUrl) {
+        syncFromSheets();
+      }
+      openSheetsModal();
+    });
+    document.getElementById("btn-close-sheets").addEventListener("click", () => {
+      document.getElementById("sheets-modal").classList.add("hidden");
+    });
+    document.getElementById("btn-save-sheets").addEventListener("click", async () => {
+      const url = document.getElementById("input-sheets-url").value.trim();
+      if (!url) return alert("Pega la URL de Google Apps Script.");
+      sheetsApiUrl = url;
+      localStorage.setItem(SHEETS_API_KEY, url);
+      updateSheetsButton();
+      await syncFromSheets();
+      openSheetsModal();
+    });
+    document.getElementById("btn-refresh-sheets").addEventListener("click", async () => {
+      await syncFromSheets();
+      document.getElementById("sheets-modal").classList.add("hidden");
+    });
+    document.getElementById("btn-disconnect-sheets").addEventListener("click", () => {
+      sheetsApiUrl = "";
+      localStorage.removeItem(SHEETS_API_KEY);
+      updateSheetsButton();
+      document.getElementById("sheets-modal").classList.add("hidden");
+    });
+    document.getElementById("btn-copy-public-form").addEventListener("click", () => {
+      navigator.clipboard.writeText(document.getElementById("input-public-form-url").value);
     });
 
     document.getElementById("btn-clear-demo").addEventListener("click", () => {
