@@ -211,8 +211,15 @@
             </div>
           </div>
           <p class="text-[var(--muted-foreground)]">
-            Nota: El video se genera en tiempo real dentro de tu navegador (720×1280 vertical, sin marcas de agua). No cierres esta pestaña mientras exporta.
+            Nota: El video se genera en tiempo real dentro de tu navegador (720×1280 vertical, sin marcas de agua). Versión <strong>v2.2</strong>.
           </p>
+          <div id="export-result-box" class="hidden pt-3 border-t border-[var(--border)] space-y-2.5">
+            <div class="font-semibold text-[var(--success)]">✅ ¡Video listo! Puedes verlo aquí o tocar el botón verde para guardarlo:</div>
+            <video id="export-video-preview" controls playsinline class="w-full max-h-72 rounded-lg bg-black border border-[var(--border)]"></video>
+            <a id="btn-download-final-video" download="avon_mariana_video.webm" class="block w-full text-center py-2.5 rounded-lg bg-[var(--success)] text-white font-bold hover:opacity-90 cursor-pointer">
+              ⬇ GUARDAR VIDEO EN MI DISPOSITIVO
+            </a>
+          </div>
         </div>
       </div>
 
@@ -229,10 +236,10 @@
     </div>
   </div>
 
-  <!-- Hidden media elements for decoding -->
-  <video id="src-video" playsinline class="hidden"></video>
-  <audio id="src-voice" class="hidden"></audio>
-  <audio id="src-bgm" loop class="hidden"></audio>
+  <!-- Offscreen media elements (never display:none so mobile browsers allow playback) -->
+  <video id="src-video" playsinline style="position:fixed;left:-9999px;top:-9999px;width:2px;height:2px;opacity:0.01;"></video>
+  <audio id="src-voice" playsinline style="position:fixed;left:-9999px;top:-9999px;"></audio>
+  <audio id="src-bgm" loop playsinline style="position:fixed;left:-9999px;top:-9999px;"></audio>
 
   <script>
     const canvas = document.getElementById("studio-canvas");
@@ -267,10 +274,19 @@
     const voiceEl = document.getElementById("src-voice");
     const bgmEl = document.getElementById("src-bgm");
 
-    function initAudioGraph() {
+    async function initAudioGraph() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         mixDest = audioCtx.createMediaStreamDestination();
+
+        // Silent keepalive signal so MediaRecorder always receives continuous audio frames
+        const osc = audioCtx.createOscillator();
+        const keepAlive = audioCtx.createGain();
+        keepAlive.gain.value = 0.00001;
+        osc.frequency.value = 1;
+        osc.connect(keepAlive);
+        keepAlive.connect(mixDest);
+        osc.start();
 
         videoGain = audioCtx.createGain();
         voiceGain = audioCtx.createGain();
@@ -293,7 +309,7 @@
         bgmGain.connect(mixDest);
       }
       if (audioCtx.state === "suspended") {
-        audioCtx.resume();
+        await audioCtx.resume();
       }
       videoGain.gain.value = Number(document.getElementById("range-vid-vol").value) / 100;
       voiceGain.gain.value = 1.0;
@@ -465,6 +481,20 @@
       ctx.drawImage(img, dx, dy, dw, dh);
     }
 
+    function drawRoundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
     function drawOverlays() {
       const theme = document.getElementById("sel-theme").value;
       if (theme === "none") return;
@@ -483,8 +513,7 @@
       // Top Hook Banner
       if (hook || sub) {
         ctx.fillStyle = pal.topBg;
-        ctx.beginPath();
-        ctx.roundRect(36, 48, W - 72, sub ? 132 : 90, 22);
+        drawRoundRect(36, 48, W - 72, sub ? 132 : 90, 22);
         ctx.fill();
 
         ctx.fillStyle = "#FFFFFF";
@@ -502,8 +531,7 @@
       // Bottom Contact Bar
       if (cta) {
         ctx.fillStyle = pal.botBg;
-        ctx.beginPath();
-        ctx.roundRect(36, H - 148, W - 72, 92, 22);
+        drawRoundRect(36, H - 148, W - 72, 92, 22);
         ctx.fill();
 
         ctx.strokeStyle = pal.accent;
@@ -551,7 +579,8 @@
 
     function stopPlayback() {
       isPlaying = false;
-      cancelAnimationFrame(animFrame);
+      clearInterval(animFrame);
+      animFrame = null;
       vidEl.pause();
       voiceEl.pause();
       bgmEl.pause();
@@ -579,57 +608,62 @@
       const outroDur = outroImg ? Number(document.getElementById("sel-outro-sec").value) : 0;
       const vidDur = (videoLoaded && Number.isFinite(vidEl.duration)) ? vidEl.duration : 0;
 
-      function tick(now) {
+      function tick() {
         if (!isPlaying) return;
-        const elapsed = (now - startTime) / 1000;
-        const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+        try {
+          const elapsed = (performance.now() - startTime) / 1000;
+          const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
 
-        document.getElementById("progress-bar").style.width = pct + "%";
-        document.getElementById("progress-pct").textContent = pct + "%";
-        document.getElementById("preview-time").textContent = `00:${String(Math.floor(elapsed)).padStart(2, "0")}`;
+          document.getElementById("progress-bar").style.width = pct + "%";
+          document.getElementById("progress-pct").textContent = pct + "%";
+          document.getElementById("preview-time").textContent = `00:${String(Math.floor(elapsed)).padStart(2, "0")}`;
 
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, W, H);
 
-        if (mode === "A") {
-          if (elapsed <= vidDur && videoLoaded) {
-            drawCoverImage(vidEl, 1.0);
+          if (mode === "A") {
+            if (elapsed <= vidDur && videoLoaded) {
+              drawCoverImage(vidEl, 1.0);
+              drawOverlays();
+            } else if (outroImg && outroDur > 0) {
+              const outroElapsed = elapsed - vidDur;
+              const zoom = 1.0 + (outroElapsed / outroDur) * 0.05;
+              drawCoverImage(outroImg, zoom);
+            }
+          } else {
+            if (slides.length > 0) {
+              const slideDur = totalDuration / slides.length;
+              const idx = Math.min(slides.length - 1, Math.floor(elapsed / slideDur));
+              const localT = (elapsed % slideDur) / slideDur;
+              const zoom = 1.0 + localT * 0.08;
+              drawCoverImage(slides[idx], zoom);
+            }
             drawOverlays();
-          } else if (outroImg && outroDur > 0) {
-            const outroElapsed = elapsed - vidDur;
-            const zoom = 1.0 + (outroElapsed / outroDur) * 0.05;
-            drawCoverImage(outroImg, zoom);
           }
-        } else {
-          if (slides.length > 0) {
-            const slideDur = totalDuration / slides.length;
-            const idx = Math.min(slides.length - 1, Math.floor(elapsed / slideDur));
-            const localT = (elapsed % slideDur) / slideDur;
-            const zoom = 1.0 + localT * 0.08;
-            drawCoverImage(slides[idx], zoom);
-          }
-          drawOverlays();
-        }
 
-        if (elapsed >= totalDuration) {
+          if (elapsed >= totalDuration) {
+            stopPlayback();
+            document.getElementById("progress-bar").style.width = "100%";
+            document.getElementById("progress-pct").textContent = "100%";
+            if (onDone) onDone();
+          }
+        } catch (err) {
           stopPlayback();
-          document.getElementById("progress-bar").style.width = "100%";
-          document.getElementById("progress-pct").textContent = "100%";
-          if (onDone) onDone();
-          return;
+          isExporting = false;
+          document.getElementById("status-text").textContent = "Error durante el render: " + (err.message || err);
         }
-        animFrame = requestAnimationFrame(tick);
       }
 
-      animFrame = requestAnimationFrame(tick);
+      tick();
+      animFrame = setInterval(tick, 33);
     }
 
-    document.getElementById("btn-preview").addEventListener("click", () => {
+    document.getElementById("btn-preview").addEventListener("click", async () => {
       if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
       if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
       stopPlayback();
       isExporting = false;
-      initAudioGraph();
+      await initAudioGraph();
       document.getElementById("status-text").textContent = "Reproduciendo vista previa...";
       startRenderLoop(() => {
         document.getElementById("status-text").textContent = "Vista previa finalizada.";
@@ -651,9 +685,9 @@
         ""
       ];
       for (const mime of candidates) {
-        if (!mime || MediaRecorder.isTypeSupported(mime)) {
+        if (!mime || (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(mime))) {
           try {
-            const opts = mime ? { mimeType: mime, videoBitsPerSecond: 3000000 } : { videoBitsPerSecond: 3000000 };
+            const opts = mime ? { mimeType: mime, videoBitsPerSecond: 2500000 } : { videoBitsPerSecond: 2500000 };
             const rec = new MediaRecorder(stream, opts);
             return { rec, mime: rec.mimeType || mime || "video/webm" };
           } catch (e) {
@@ -664,18 +698,19 @@
       throw new Error("Tu navegador no soporta la grabación de video desde canvas.");
     }
 
-    document.getElementById("btn-export").addEventListener("click", () => {
+    document.getElementById("btn-export").addEventListener("click", async () => {
       if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
       if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
       if (isExporting) return;
 
       try {
         stopPlayback();
-        initAudioGraph();
+        await initAudioGraph();
         isExporting = true;
+        document.getElementById("export-result-box").classList.add("hidden");
         document.getElementById("progress-bar").style.width = "0%";
         document.getElementById("progress-pct").textContent = "0%";
-        document.getElementById("status-text").textContent = "Renderizando video... No cierres esta ventana.";
+        document.getElementById("status-text").textContent = `Renderizando video (${computeDuration().toFixed(0)}s)...`;
 
         const canvasStream = canvas.captureStream(30);
         const tracks = [...canvasStream.getVideoTracks()];
@@ -691,14 +726,24 @@
           const ext = mime.includes("mp4") ? "mp4" : "webm";
           const blob = new Blob(chunks, { type: mime });
           const url = URL.createObjectURL(blob);
+          const filename = `avon_mariana_72329408_${Date.now()}.${ext}`;
+
+          const vidPreview = document.getElementById("export-video-preview");
+          const dlBtn = document.getElementById("btn-download-final-video");
+          vidPreview.src = url;
+          dlBtn.href = url;
+          dlBtn.download = filename;
+          document.getElementById("export-result-box").classList.remove("hidden");
+
+          // Also trigger automatic download on desktop
           const a = document.createElement("a");
           a.href = url;
-          a.download = `avon_mariana_72329408_${Date.now()}.${ext}`;
+          a.download = filename;
           document.body.appendChild(a);
           a.click();
           a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 5000);
-          document.getElementById("status-text").textContent = `¡Video descargado (.${ext})! Listo para TikTok, Reels y WhatsApp.`;
+
+          document.getElementById("status-text").textContent = `¡Video listo (.${ext})! Si no bajó solo, toca el botón verde abajo.`;
           isExporting = false;
         };
 
