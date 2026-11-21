@@ -375,7 +375,7 @@
       loadVoiceBlob(f, f.name);
     });
 
-    function loadVoiceBlob(blob, label) {
+    function loadVoiceBlob(blob, label, measuredSec = 0) {
       const objUrl = URL.createObjectURL(blob);
       voiceEl.src = objUrl;
       const player = document.getElementById("voice-player");
@@ -385,10 +385,27 @@
       dl.download = `voz_avon_mariana_${Date.now()}.webm`;
       document.getElementById("voice-preview-box").classList.remove("hidden");
 
-      voiceEl.onloadedmetadata = () => {
+      const applyDur = (d) => {
         voiceLoaded = true;
-        voiceDuration = voiceEl.duration || 10;
+        voiceDuration = (Number.isFinite(d) && d > 0) ? d : (measuredSec > 0 ? measuredSec : 10);
         document.getElementById("voice-info").textContent = `Voz lista: ${label} (${voiceDuration.toFixed(1)}s) — Ya puedes escucharla o guardarla abajo.`;
+      };
+
+      voiceEl.onloadedmetadata = () => {
+        if (voiceEl.duration === Infinity || isNaN(voiceEl.duration)) {
+          if (measuredSec > 0) {
+            applyDur(measuredSec);
+          } else {
+            voiceEl.currentTime = 1e10;
+            voiceEl.ontimeupdate = () => {
+              voiceEl.ontimeupdate = null;
+              voiceEl.currentTime = 0;
+              applyDur(voiceEl.duration);
+            };
+          }
+        } else {
+          applyDur(voiceEl.duration);
+        }
       };
     }
 
@@ -403,6 +420,7 @@
     let micRecorder = null;
     let micChunks = [];
     let isRecordingMic = false;
+    let micStartTime = 0;
     const btnMic = document.getElementById("btn-rec-mic");
 
     btnMic.addEventListener("click", async () => {
@@ -411,10 +429,12 @@
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           micRecorder = new MediaRecorder(stream);
           micChunks = [];
+          micStartTime = Date.now();
           micRecorder.ondataavailable = (ev) => { if (ev.data.size > 0) micChunks.push(ev.data); };
           micRecorder.onstop = () => {
-            const blob = new Blob(micChunks, { type: "audio/webm" });
-            loadVoiceBlob(blob, "Grabación de micrófono");
+            const measuredSec = Math.max(1, (Date.now() - micStartTime) / 1000);
+            const blob = new Blob(micChunks, { type: micRecorder.mimeType || "audio/webm" });
+            loadVoiceBlob(blob, "Grabación de micrófono", measuredSec);
             stream.getTracks().forEach(t => t.stop());
           };
           micRecorder.start();
@@ -520,18 +540,17 @@
 
     function computeDuration() {
       if (mode === "A") {
-        const vidDur = videoLoaded ? vidEl.duration : 5;
+        const vidDur = (videoLoaded && Number.isFinite(vidEl.duration)) ? vidEl.duration : 5;
         const outroDur = outroImg ? Number(document.getElementById("sel-outro-sec").value) : 0;
-        return vidDur + outroDur;
+        return Math.max(1, vidDur + outroDur);
       } else {
-        if (voiceLoaded && voiceDuration > 0) return voiceDuration;
+        if (voiceLoaded && Number.isFinite(voiceDuration) && voiceDuration > 0) return voiceDuration;
         return Math.max(4, slides.length * 4);
       }
     }
 
     function stopPlayback() {
       isPlaying = false;
-      isExporting = false;
       cancelAnimationFrame(animFrame);
       vidEl.pause();
       voiceEl.pause();
@@ -546,19 +565,19 @@
 
       if (mode === "A" && videoLoaded) {
         vidEl.currentTime = 0;
-        vidEl.play();
+        vidEl.play().catch(() => {});
       }
       if (mode === "B" && voiceLoaded) {
         voiceEl.currentTime = 0;
-        voiceEl.play();
+        voiceEl.play().catch(() => {});
       }
       if (bgmLoaded) {
         bgmEl.currentTime = 0;
-        bgmEl.play();
+        bgmEl.play().catch(() => {});
       }
 
       const outroDur = outroImg ? Number(document.getElementById("sel-outro-sec").value) : 0;
-      const vidDur = videoLoaded ? vidEl.duration : 0;
+      const vidDur = (videoLoaded && Number.isFinite(vidEl.duration)) ? vidEl.duration : 0;
 
       function tick(now) {
         if (!isPlaying) return;
@@ -586,7 +605,7 @@
             const slideDur = totalDuration / slides.length;
             const idx = Math.min(slides.length - 1, Math.floor(elapsed / slideDur));
             const localT = (elapsed % slideDur) / slideDur;
-            const zoom = 1.0 + localT * 0.08; // Ken Burns zoom
+            const zoom = 1.0 + localT * 0.08;
             drawCoverImage(slides[idx], zoom);
           }
           drawOverlays();
@@ -609,6 +628,7 @@
       if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
       if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
       stopPlayback();
+      isExporting = false;
       initAudioGraph();
       document.getElementById("status-text").textContent = "Reproduciendo vista previa...";
       startRenderLoop(() => {
@@ -618,51 +638,81 @@
 
     document.getElementById("btn-stop").addEventListener("click", () => {
       stopPlayback();
+      isExporting = false;
       document.getElementById("status-text").textContent = "Detenido.";
     });
+
+    function createBestRecorder(stream) {
+      const candidates = [
+        "video/webm;codecs=vp9,opus",
+        "video/webm;codecs=vp8,opus",
+        "video/webm",
+        "video/mp4",
+        ""
+      ];
+      for (const mime of candidates) {
+        if (!mime || MediaRecorder.isTypeSupported(mime)) {
+          try {
+            const opts = mime ? { mimeType: mime, videoBitsPerSecond: 3000000 } : { videoBitsPerSecond: 3000000 };
+            const rec = new MediaRecorder(stream, opts);
+            return { rec, mime: rec.mimeType || mime || "video/webm" };
+          } catch (e) {
+            continue;
+          }
+        }
+      }
+      throw new Error("Tu navegador no soporta la grabación de video desde canvas.");
+    }
 
     document.getElementById("btn-export").addEventListener("click", () => {
       if (mode === "A" && !videoLoaded) return alert("Primero sube tu video en el paso 1.");
       if (mode === "B" && slides.length === 0) return alert("Primero sube al menos 1 foto PROMO en el paso 1.");
       if (isExporting) return;
 
-      stopPlayback();
-      initAudioGraph();
-      isExporting = true;
-      document.getElementById("status-text").textContent = "Renderizando video... No cierres esta ventana.";
+      try {
+        stopPlayback();
+        initAudioGraph();
+        isExporting = true;
+        document.getElementById("progress-bar").style.width = "0%";
+        document.getElementById("progress-pct").textContent = "0%";
+        document.getElementById("status-text").textContent = "Renderizando video... No cierres esta ventana.";
 
-      const canvasStream = canvas.captureStream(30);
-      const combinedStream = new MediaStream([
-        ...canvasStream.getVideoTracks(),
-        ...mixDest.stream.getAudioTracks()
-      ]);
+        const canvasStream = canvas.captureStream(30);
+        const tracks = [...canvasStream.getVideoTracks()];
+        if (mixDest && mixDest.stream) {
+          tracks.push(...mixDest.stream.getAudioTracks());
+        }
+        const combinedStream = new MediaStream(tracks);
 
-      const mimeType = MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")
-        ? "video/mp4"
-        : MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
-        ? "video/webm;codecs=vp9,opus"
-        : "video/webm";
+        const { rec: recorder, mime } = createBestRecorder(combinedStream);
+        const chunks = [];
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const ext = mime.includes("mp4") ? "mp4" : "webm";
+          const blob = new Blob(chunks, { type: mime });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `avon_mariana_72329408_${Date.now()}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+          document.getElementById("status-text").textContent = `¡Video descargado (.${ext})! Listo para TikTok, Reels y WhatsApp.`;
+          isExporting = false;
+        };
 
-      const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 3500000 });
-      const chunks = [];
-      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-      recorder.onstop = () => {
-        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
-        const blob = new Blob(chunks, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `avon_mariana_72329408_${Date.now()}.${ext}`;
-        a.click();
-        URL.revokeObjectURL(url);
-        document.getElementById("status-text").textContent = `¡Video descargado (.${ext})! Listo para TikTok, Reels y WhatsApp.`;
+        recorder.start(250);
+        startRenderLoop(() => {
+          setTimeout(() => {
+            if (recorder.state !== "inactive") recorder.stop();
+          }, 300);
+        });
+      } catch (err) {
         isExporting = false;
-      };
-
-      recorder.start(200);
-      startRenderLoop(() => {
-        setTimeout(() => recorder.stop(), 250);
-      });
+        document.getElementById("status-text").textContent = "Error al exportar: " + (err.message || err);
+        alert("Error al exportar el video: " + (err.message || err));
+      }
     });
 
     drawStaticPreview();
